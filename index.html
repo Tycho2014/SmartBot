@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultieme Slimme Chatbot</title>
+    <title>SmartBot - Intelligente Chatbot</title>
     <style>
         * {
             margin: 0;
@@ -13,1609 +13,949 @@
         }
         
         body {
-            background: linear-gradient(135deg, #0f4c75, #3282b8, #bbe1fa);
+            background: linear-gradient(135deg, #1a2a6c 0%, #2a3a7c 100%);
+            color: #333;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0;
+            padding: 20px;
         }
         
-        .chat-container {
+        .container {
+            max-width: 900px;
             width: 100%;
-            max-width: 1400px;
-            background-color: white;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+            position: relative;
         }
         
-        /* Header */
-        .chat-header {
-            background: linear-gradient(90deg, #0f4c75, #3282b8);
+        header {
+            background: linear-gradient(90deg, #1a2a6c 0%, #3a4a9c 100%);
             color: white;
-            padding: 15px 25px;
+            padding: 20px;
+            text-align: center;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            min-height: 80px;
         }
         
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0;
         }
         
         .menu-button {
             background: none;
             border: none;
             color: white;
-            font-size: 24px;
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 8px;
+            padding: 5px 10px;
             border-radius: 5px;
-            transition: background 0.3s;
+            transition: background-color 0.3s;
         }
         
         .menu-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.2);
         }
         
-        .chat-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        
-        .bot-name {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .stat-item {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 0.9rem;
-        }
-        
-        /* Dropdown menu */
-        .dropdown-menu {
+        .menu {
             position: absolute;
-            top: 100%;
-            left: 0;
+            top: 70px;
+            right: 20px;
             background: white;
-            width: 300px;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            width: 250px;
+            z-index: 100;
             display: none;
-            padding: 20px;
         }
         
-        .dropdown-menu.show {
+        .menu.active {
             display: block;
         }
         
-        .menu-section {
-            margin-bottom: 20px;
-        }
-        
-        .menu-section h3 {
-            color: #0f4c75;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-        }
-        
-        .menu-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-        
-        .menu-button-small {
-            background: #0f4c75;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
+        .menu-item {
+            padding: 10px;
             cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            transition: background 0.3s;
+            border-radius: 5px;
+            transition: background-color 0.2s;
         }
         
-        .menu-button-small:hover {
-            background: #0d3e63;
+        .menu-item:hover {
+            background-color: #f0f0f0;
         }
         
-        /* Chat ruimte - MAXIMAAL */
-        .chat-messages {
-            flex: 1;
-            padding: 25px;
-            overflow-y: auto;
+        .menu-section {
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            color: #1a2a6c;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+        
+        .chat-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            background: #f8f9fa;
+            height: 500px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         
         .message {
-            max-width: 70%;
-            padding: 18px 24px;
-            border-radius: 24px;
-            line-height: 1.5;
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            line-height: 1.4;
             position: relative;
-            animation: fadeIn 0.4s ease;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .bot-message {
-            align-self: flex-start;
-            background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%);
-            border: 1px solid #e0e0e0;
-            border-bottom-left-radius: 8px;
         }
         
         .user-message {
             align-self: flex-end;
-            background: linear-gradient(135deg, #0f4c75, #3282b8);
+            background: linear-gradient(135deg, #1a2a6c 0%, #3a4a9c 100%);
             color: white;
-            border-bottom-right-radius: 8px;
+            border-bottom-right-radius: 5px;
         }
         
-        .system-message {
-            align-self: center;
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            max-width: 80%;
-            text-align: center;
-            color: #1565c0;
-            font-style: italic;
-            padding: 15px 20px;
-            border-radius: 15px;
+        .bot-message {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 5px;
         }
         
-        .warning-message {
-            align-self: center;
-            background: #ffebee;
-            border: 1px solid #f44336;
-            max-width: 80%;
-            text-align: center;
-            color: #c62828;
-            padding: 15px 20px;
-            border-radius: 15px;
-            font-weight: 600;
-        }
-        
-        .message-sender {
-            font-weight: 600;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .message-time {
-            font-size: 0.75rem;
-            opacity: 0.7;
-            margin-top: 8px;
-            text-align: right;
-        }
-        
-        /* Geanimeerd denkproces */
         .thinking-process {
             align-self: flex-start;
-            background: linear-gradient(135deg, #fff3e0, #ffecb3);
-            border: 2px solid #ffb74d;
-            border-radius: 18px;
-            padding: 20px;
-            margin: 10px 0;
-            max-width: 80%;
-            animation: thinkingGlow 2s infinite alternate;
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-family: monospace;
+            max-width: 90%;
         }
         
-        @keyframes thinkingGlow {
-            from { box-shadow: 0 4px 15px rgba(255, 183, 77, 0.3); }
-            to { box-shadow: 0 4px 25px rgba(255, 183, 77, 0.6); }
-        }
-        
-        .deep-thinking-process {
-            align-self: flex-start;
-            background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
-            border: 2px solid #0288d1;
-            border-radius: 18px;
-            padding: 20px;
-            margin: 10px 0;
-            max-width: 80%;
-            animation: deepThinkingGlow 2s infinite alternate;
-        }
-        
-        @keyframes deepThinkingGlow {
-            from { box-shadow: 0 4px 15px rgba(2, 136, 209, 0.3); }
-            to { box-shadow: 0 4px 25px rgba(2, 136, 209, 0.6); }
-        }
-        
-        .thinking-header {
+        .input-area {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            font-weight: 700;
-            color: #e65100;
-            font-size: 1.1rem;
-        }
-        
-        .deep-thinking-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            font-weight: 700;
-            color: #01579b;
-            font-size: 1.1rem;
-        }
-        
-        .thinking-content {
-            background: rgba(255, 255, 255, 0.8);
             padding: 15px;
-            border-radius: 12px;
-            border-left: 5px solid #ff9800;
-        }
-        
-        .deep-thinking-content {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 12px;
-            border-left: 5px solid #0288d1;
-        }
-        
-        .thinking-line {
-            margin: 8px 0;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 8px;
-            border-left: 3px solid #4caf50;
-            animation: typewriter 0.5s ease-out;
-        }
-        
-        .deep-thinking-line {
-            margin: 8px 0;
-            padding: 10px 14px;
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid #0288d1;
-            animation: deepTypewriter 0.7s ease-out;
-            font-size: 0.95rem;
-        }
-        
-        @keyframes typewriter {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes deepTypewriter {
-            from { opacity: 0; transform: translateX(-15px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .thinking-typing {
-            display: inline-flex;
-            gap: 3px;
-            margin-left: 10px;
-        }
-        
-        .thinking-typing span {
-            animation: bounce 1.4s infinite;
-            display: inline-block;
-        }
-        
-        .thinking-typing span:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-        
-        .thinking-typing span:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-        
-        @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-5px); }
-        }
-        
-        /* Input gebied */
-        .chat-input-container {
-            display: flex;
-            padding: 20px 25px;
             background-color: white;
-            gap: 15px;
-            border-top: 1px solid #eaeaea;
-            flex-direction: column;
+            border-top: 1px solid #e0e0e0;
         }
         
-        .input-row {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-        }
-        
-        .chat-input {
+        input {
             flex: 1;
-            padding: 18px 22px;
-            border: 2px solid #e0e0e0;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
             border-radius: 30px;
+            font-size: 1rem;
             outline: none;
-            font-size: 1.05rem;
-            transition: all 0.3s;
-            background: #f8f9fa;
+            transition: border 0.3s;
         }
         
-        .chat-input:focus {
-            border-color: #0f4c75;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(15, 76, 117, 0.1);
+        input:focus {
+            border-color: #3a4a9c;
         }
         
-        .send-button {
-            background: linear-gradient(135deg, #0f4c75, #3282b8);
+        button {
+            background: linear-gradient(135deg, #1a2a6c 0%, #3a4a9c 100%);
             color: white;
             border: none;
             border-radius: 30px;
-            padding: 18px 35px;
+            padding: 12px 25px;
+            margin-left: 10px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(15, 76, 117, 0.3);
-            font-size: 1.05rem;
-            min-width: 140px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
-        .send-button:hover {
+        button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(15, 76, 117, 0.4);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
-        /* Optie knoppen */
-        .option-buttons {
+        .controls {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #f1f3f5;
+            border-top: 1px solid #e0e0e0;
         }
         
-        .option-button {
-            background: #f8f9fa;
-            border: 2px solid #0f4c75;
-            color: #0f4c75;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+        .toggle-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 8px 15px;
             font-size: 0.9rem;
+        }
+        
+        .toggle-btn.off {
+            background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+        }
+        
+        .status {
             display: flex;
             align-items: center;
-            gap: 8px;
+            font-size: 0.9rem;
+            color: #666;
         }
         
-        .option-button.active {
-            background: #0f4c75;
-            color: white;
-            box-shadow: 0 4px 12px rgba(15, 76, 117, 0.3);
-        }
-        
-        .option-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        .option-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(15, 76, 117, 0.2);
-        }
-        
-        .deep-thinking-counter {
+        footer {
+            text-align: center;
+            padding: 15px;
             font-size: 0.8rem;
-            opacity: 0.8;
-            margin-left: 5px;
+            color: #666;
+            background-color: #f1f3f5;
         }
         
-        /* Scrollbar styling */
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-        
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .chat-header {
-                padding: 12px 20px;
-                min-height: 70px;
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 10px;
             }
             
-            .chat-title {
-                font-size: 1.5rem;
+            h1 {
+                font-size: 1.8rem;
             }
             
-            .bot-name {
-                font-size: 1rem;
+            .chat-container {
+                height: 400px;
             }
             
-            .stat-item {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-            
-            .message, .thinking-process, .deep-thinking-process {
+            .message {
                 max-width: 90%;
             }
             
-            .chat-input-container {
-                padding: 15px 20px;
-            }
-            
-            .chat-input {
-                padding: 15px 18px;
-            }
-            
-            .send-button {
-                padding: 15px 25px;
-                min-width: 100px;
-            }
-            
-            .dropdown-menu {
-                width: 100%;
-            }
-            
-            .input-row {
+            .controls {
                 flex-direction: column;
-            }
-            
-            .option-buttons {
-                gap: 8px;
-            }
-            
-            .option-button {
-                padding: 8px 15px;
-                font-size: 0.8rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header-right {
-                display: none;
-            }
-            
-            .message, .thinking-process, .deep-thinking-process {
-                max-width: 95%;
+                gap: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="header-left">
-                <button class="menu-button">☰</button>
-                <div>
-                    <div class="chat-title">Smartbot</div>
-                    <div class="bot-name" id="botNameDisplay">Jouw bot</div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="stat-item">Kennis: <span id="knowledgeCount">0</span></div>
-                <div class="stat-item">Gesprek: <span id="chatCount">0</span></div>
-                <div class="stat-item">Diep Denken: <span id="deepThinkingCount">0</span>/50</div>
-            </div>
+    <div class="container">
+        <header>
+            <h1>SmartBot</h1>
+            <button class="menu-button" id="menuButton">☰</button>
+        </header>
+        
+        <div class="menu" id="menu">
+            <div class="menu-section">Chat Acties</div>
+            <div class="menu-item" id="newChat">Nieuwe Chat</div>
+            <div class="menu-item" id="showAnswers">Antwoordlijst Bekijken</div>
             
-            <!-- Dropdown Menu -->
-            <div class="dropdown-menu">
-                <div class="menu-section">
-                    <h3>Bot Naam Instellen</h3>
-                    <input type="text" class="menu-input" id="botNameInput" placeholder="Geef je chatbot een naam">
-                    <button class="menu-button-small" id="saveBotName">Naam Opslaan</button>
-                </div>
-                
-                <div class="menu-section">
-                    <h3>Kennis Beheer</h3>
-                    <button class="menu-button-small" id="viewKnowledge">Bekijk Kennis</button>
-                    <button class="menu-button-small" id="addKnowledge">Voeg Kennis Toe</button>
-                    <button class="menu-button-small" id="clearKnowledge">Wis Kennis</button>
-                </div>
-                
-                <div class="menu-section">
-                    <h3>Denk Instellingen</h3>
-                    <button class="menu-button-small" id="toggleThinking">Denkproces: AAN</button>
-                    <button class="menu-button-small" id="exportChat">Exporteer Gesprek</button>
+            <div class="menu-section">Prompt Voorbeelden</div>
+            <div class="menu-item" id="begroeting">Begroeting</div>
+            <div class="menu-item" id="bozeOpmerking">Boze Opmerking</div>
+            <div class="menu-item" id="compliment">Compliment</div>
+            <div class="menu-item" id="voorkeur">Voorkeur</div>
+            <div class="menu-item" id="mening">Mening</div>
+            <div class="menu-item" id="vraag">Vraag</div>
+            <div class="menu-item" id="grappig">Grappige Opmerking</div>
+            <div class="menu-item" id="filosofisch">Filosofische Vraag</div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    Hallo! Ik ben SmartBot. Ik kan emoties herkennen, vragen beantwoorden en onthoud wat je zegt om het later te gebruiken. Klik op het menu om verschillende soorten berichten te proberen!
                 </div>
             </div>
         </div>
         
-        <!-- Maximale Chat Ruimte -->
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                <div class="message-sender">SmartBot</div>
-                🧠 Hallo! Ik ben SmartBot, een ultieme chatbot met geavanceerde denkcapaciteiten. Je hebt 50 Diep Denken sessies per dag beschikbaar!
-                <div class="message-time">Net nu</div>
-            </div>
-            <div class="message bot-message">
-                <div class="message-sender">SmartBot</div>
-                Gebruik Diep Denken voor uitgebreide analyses en Lange Antwoorden voor gedetailleerde uitleg. Beide opties kun je aan/uit zetten!
-                <div class="message-time">Net nu</div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Typ je bericht hier...">
+            <button id="sendButton">Versturen</button>
+        </div>
+        
+        <div class="controls">
+            <button id="toggleThinking" class="toggle-btn">Diep denken: AAN</button>
+            <div class="status">
+                <span id="thinkingStatus">Diep denken gebruikt: 0/50 vandaag</span>
             </div>
         </div>
         
-        <div class="chat-input-container">
-            <div class="input-row">
-                <input type="text" class="chat-input" id="userInput" placeholder="Stel me een vraag... (Enter om te verzenden)" autocomplete="off">
-                <button class="send-button" id="sendButton">Versturen</button>
-            </div>
-            
-            <!-- Nieuwe optie knoppen -->
-            <div class="option-buttons">
-                <button class="option-button" id="deepThinkingBtn">
-                    <span>🧠 Diep Denken</span>
-                    <span id="deepThinkingStatus">AAN</span>
-                    <span class="deep-thinking-counter" id="deepThinkingCounter">(50/50)</span>
-                </button>
-                <button class="option-button" id="longAnswersBtn">
-                    <span>📝 Lange Antwoorden</span>
-                    <span id="longAnswersStatus">AAN</span>
-                </button>
-            </div>
-        </div>
+        <footer>
+            SmartBot - Elke dag 50 keer diep denken gebruiken
+        </footer>
     </div>
 
     <script>
-        // Uitgebreide kennisbank
-        let knowledgeBase = {};
-        let conversationHistory = [];
-        let userQuestions = []; // Nieuwe array om vragen van gebruikers op te slaan
-        let botName = "SmartBot";
-        let messageCount = 0;
-        let learningMoments = 0;
-        let showThinkingProcess = true;
-        let deepThinkingEnabled = true;
-        let longAnswersEnabled = true;
-        let deepThinkingCount = 0;
-        let lastDeepThinkingDate = null;
-        
-        // Lijst van generieke antwoorden die niet opgeslagen mogen worden
-        const genericResponses = [
-            "dank voor het delen",
-            "interessant",
-            "dat is goed om te weten",
-            "fascinerend",
-            "bedankt voor deze input",
-            "goed punt",
-            "interessante observatie"
-        ];
-        
-        // Initialisatie
-        function initializeUltimateChatbot() {
-            loadFromStorage();
-            checkDailyReset();
-            updateDisplay();
-            setupEventListeners();
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const toggleThinking = document.getElementById('toggleThinking');
+            const thinkingStatus = document.getElementById('thinkingStatus');
+            const menuButton = document.getElementById('menuButton');
+            const menu = document.getElementById('menu');
             
-            if (Object.keys(knowledgeBase).length === 0) {
-                addComprehensiveKnowledge();
-            }
-        }
-        
-        // Controleer of we een nieuwe dag zijn
-        function checkDailyReset() {
-            const today = new Date().toDateString();
+            // Menu items
+            const newChatBtn = document.getElementById('newChat');
+            const showAnswersBtn = document.getElementById('showAnswers');
+            const begroetingBtn = document.getElementById('begroeting');
+            const bozeOpmerkingBtn = document.getElementById('bozeOpmerking');
+            const complimentBtn = document.getElementById('compliment');
+            const voorkeurBtn = document.getElementById('voorkeur');
+            const meningBtn = document.getElementById('mening');
+            const vraagBtn = document.getElementById('vraag');
+            const grappigBtn = document.getElementById('grappig');
+            const filosofischBtn = document.getElementById('filosofisch');
             
-            if (lastDeepThinkingDate !== today) {
-                deepThinkingCount = 0;
-                lastDeepThinkingDate = today;
-                saveToStorage();
-                
-                if (deepThinkingCount === 0) {
-                    addSystemMessage("🔄 Diep Denken teller is gereset voor vandaag! Je hebt 50 sessies beschikbaar.");
-                }
-            }
-        }
-        
-        // Laad gegevens uit localStorage
-        function loadFromStorage() {
-            const savedKnowledge = localStorage.getItem('ultimateChatbotKnowledge');
-            const savedHistory = localStorage.getItem('ultimateChatbotHistory');
-            const savedQuestions = localStorage.getItem('ultimateChatbotQuestions');
-            const savedName = localStorage.getItem('ultimateChatbotName');
-            const savedCount = localStorage.getItem('ultimateChatbotCount');
-            const savedLearning = localStorage.getItem('ultimateChatbotLearning');
-            const savedThinking = localStorage.getItem('ultimateChatbotThinking');
-            const savedDeepThinking = localStorage.getItem('ultimateChatbotDeepThinking');
-            const savedLongAnswers = localStorage.getItem('ultimateChatbotLongAnswers');
-            const savedDeepThinkingCount = localStorage.getItem('ultimateChatbotDeepThinkingCount');
-            const savedLastDeepThinkingDate = localStorage.getItem('ultimateChatbotLastDeepThinkingDate');
+            let deepThinkingEnabled = true;
+            let deepThinkingUsed = 0;
+            const maxDeepThinking = 50;
             
-            if (savedKnowledge) knowledgeBase = JSON.parse(savedKnowledge);
-            if (savedHistory) conversationHistory = JSON.parse(savedHistory);
-            if (savedQuestions) userQuestions = JSON.parse(savedQuestions);
-            if (savedName) botName = savedName;
-            if (savedCount) messageCount = parseInt(savedCount);
-            if (savedLearning) learningMoments = parseInt(savedLearning);
-            if (savedThinking) showThinkingProcess = JSON.parse(savedThinking);
-            if (savedDeepThinking) deepThinkingEnabled = JSON.parse(savedDeepThinking);
-            if (savedLongAnswers) longAnswersEnabled = JSON.parse(savedLongAnswers);
-            if (savedDeepThinkingCount) deepThinkingCount = parseInt(savedDeepThinkingCount);
-            if (savedLastDeepThinkingDate) lastDeepThinkingDate = savedLastDeepThinkingDate;
-        }
-        
-        // Sla gegevens op in localStorage
-        function saveToStorage() {
-            localStorage.setItem('ultimateChatbotKnowledge', JSON.stringify(knowledgeBase));
-            localStorage.setItem('ultimateChatbotHistory', JSON.stringify(conversationHistory));
-            localStorage.setItem('ultimateChatbotQuestions', JSON.stringify(userQuestions));
-            localStorage.setItem('ultimateChatbotName', botName);
-            localStorage.setItem('ultimateChatbotCount', messageCount.toString());
-            localStorage.setItem('ultimateChatbotLearning', learningMoments.toString());
-            localStorage.setItem('ultimateChatbotThinking', JSON.stringify(showThinkingProcess));
-            localStorage.setItem('ultimateChatbotDeepThinking', JSON.stringify(deepThinkingEnabled));
-            localStorage.setItem('ultimateChatbotLongAnswers', JSON.stringify(longAnswersEnabled));
-            localStorage.setItem('ultimateChatbotDeepThinkingCount', deepThinkingCount.toString());
-            localStorage.setItem('ultimateChatbotLastDeepThinkingDate', lastDeepThinkingDate);
-        }
-        
-        // Voeg uitgebreide kennis toe
-        function addComprehensiveKnowledge() {
-            const comprehensiveKnowledge = {
-                "hallo": { 
-                    responses: ["Hallo! Hoe gaat het met je vandaag?"], 
-                    weight: 100,
-                    context: "begroeting"
+            // Geheugen voor de chatbot - slaat alle statements op
+            let memory = [];
+            let learnedResponses = [];
+            let lastResponse = ''; // Houdt het laatste antwoord bij
+            
+            // Emotie patronen met minder standaard antwoorden
+            const emotionPatterns = {
+                'begroeting': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(hallo|hoi|hey|dag|goedendag|goedemorgen|goedemiddag|goedenavond)\b/i, gewicht: 3},
+                        {type: 'woord', waarde: /\b(hoe gaat het|alles goed|hoe is het|wat doe je)\b/i, gewicht: 2},
+                        {type: 'combinatie', waarde: /\b(hoi|hallo)\s+(met|daar)\b/i, gewicht: 3}
+                    ],
+                    'reacties': [
+                        "Hallo! Leuk je te ontmoeten. Hoe gaat het met je?",
+                        "Hoi daar! Hoe kan ik je vandaag helpen?",
+                        "Goedendag! Wat fijn dat je er bent. Hoe is je dag?"
+                    ],
+                    'emoji': '👋'
                 },
-                "hoi": { 
-                    responses: ["Hoi! Wat leuk dat je er bent. Waar kunnen we over praten?"], 
-                    weight: 95,
-                    context: "begroeting"
+                'boos': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(boos|woedend|kwaad|gefrustreerd|irritant|pissig|chagrijnig)\b/i, gewicht: 3},
+                        {type: 'woord', waarde: /\b(idioot|stom|slecht|waardeloos|haat|rot|kut|tering|tyfus|klote)\b/i, gewicht: 4},
+                        {type: 'woord', waarde: /\b(vervelend|irritant|ergerlijk|frustrerend|ontevreden)\b/i, gewicht: 2},
+                        {type: 'teken', waarde: /(\!{2,})/, gewicht: 3},
+                        {type: 'woord', waarde: /\b(niet goed|slechte|slechte|bah|pf|grr)\b/i, gewicht: 2},
+                        {type: 'combinatie', waarde: /\b(ik ben|ik voel me|ik word).*(boos|woedend|kwaad)\b/i, gewicht: 4}
+                    ],
+                    'reacties': [
+                        "Het spijt me dat je je zo voelt. Kan ik iets doen om te helpen?",
+                        "Ik merk dat je gefrustreerd bent. Laten we samen naar een oplossing zoeken.",
+                        "Ik begrijp dat dit vervelend is. Vertel me meer over wat er aan de hand is."
+                    ],
+                    'emoji': '😠'
                 },
-                "hoe gaat het": { 
-                    responses: ["Heel goed, dank je! Ik ben altijd blij om te helpen. En met jou?"], 
-                    weight: 90,
-                    context: "gevoel"
+                'blij': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(blij|gelukkig|vrolijk|fantastisch|geweldig)\b/i, gewicht: 2},
+                        {type: 'woord', waarde: /\b(leuk|top|super|prachtig|mooi|fijn|tof|plezier)\b/i, gewicht: 1},
+                        {type: 'teken', waarde: /(\:\)|\:D|😊|😄|🤗|🥳)/, gewicht: 2},
+                        {type: 'woord', waarde: /\b(blij|joy|fantastisch)\b/i, gewicht: 1}
+                    ],
+                    'reacties': [
+                        "Wat fijn om te horen! Ik ben blij dat je je goed voelt.",
+                        "Geweldig! Dat maakt mij ook blij.",
+                        "Dat is fantastisch nieuws!"
+                    ],
+                    'emoji': '😊'
                 },
-                "wat is je naam": { 
-                    responses: [`Mijn naam is ${botName}! Je kunt mijn naam aanpassen via het menu.`], 
-                    weight: 85,
-                    context: "identiteit"
+                'verdrietig': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(verdrietig|triest|depri|somber|teleurgesteld)\b/i, gewicht: 2},
+                        {type: 'woord', waarde: /\b(huilen|mist|down|neerslachtig|bedroefd)\b/i, gewicht: 1},
+                        {type: 'woord', waarde: /\b(zielig|jammer|spijtig|verdriet|betreuren)\b/i, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Het spijt me dat je je zo voelt. Ik ben hier voor je.",
+                        "Dat klinkt moeilijk. Wil je erover praten?",
+                        "Soms helpt het om je gevoelens te uiten. Ik luister."
+                    ],
+                    'emoji': '😢'
                 },
-                "wie ben je": { 
-                    responses: [`Ik ben ${botName}, een ultieme chatbot met geavanceerde denkcapaciteiten!`], 
-                    weight: 85,
-                    context: "identiteit"
+                'bang': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(bang|angst|bezorgd|nerveus|onzeker)\b/i, gewicht: 2},
+                        {type: 'woord', waarde: /\b(twijfel|vrees|bang|angstig|paniek)\b/i, gewicht: 1},
+                        {type: 'woord', waarde: /\b(zorgen|eng|beangstigend|zenuwachtig)\b/i, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Het is normaal om je soms onzeker te voelen. Wat maakt je precies bang?",
+                        "Laten we samen kijken naar wat je bezighoudt. Samen vinden we een oplossing.",
+                        "Angst is een natuurlijke reactie. Je bent niet alleen."
+                    ],
+                    'emoji': '😨'
                 },
-                "help": { 
-                    responses: ["Je kunt me vragen stellen, mijn naam veranderen, of me nieuwe dingen leren via het menu ☰!"], 
-                    weight: 80,
-                    context: "hulp"
+                'compliment': {
+                    'patronen': [
+                        {type: 'combinatie', waarde: /\b(goed|geweldig|fantastisch|perfect|prachtig|mooi|knap|slim)\b.*\b(jij|je|u|bot|chatbot|smartbot)\b/i, gewicht: 3},
+                        {type: 'combinatie', waarde: /\b(jij|je|u|bot|chatbot|smartbot)\b.*\b(goed|geweldig|fantastisch|perfect|prachtig|mooi|knap|slim)\b/i, gewicht: 3},
+                        {type: 'woord', waarde: /\b(dank|bedankt|thanks|merci|dankje|dankjewel)\b/i, gewicht: 2},
+                        {type: 'woord', waarde: /\b(goed gedaan|top werk|fantastische hulp|geweldige hulp)\b/i, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Wat aardig van je, dankjewel! Dat waardeer ik.",
+                        "Dank je wel voor het compliment! Dat motiveert me.",
+                        "Je maakt me blozen! Fijn dat ik je kan helpen."
+                    ],
+                    'emoji': '😊'
                 },
-                "bedankt": { 
-                    responses: ["Graag gedaan! Ik help je altijd met plezier."], 
-                    weight: 90,
-                    context: "dankbaarheid"
+                'vraag': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(waarom|hoe|wat|wie|wanneer|waar)\b.*\b(\?)/i, gewicht: 2},
+                        {type: 'woord', waarde: /\b(vertel me meer|leg uit|hoe werkt|wat is|wie is)\b/i, gewicht: 1},
+                        {type: 'teken', waarde: /(\?)$/, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Goede vraag! Laat me daar even over nadenken.",
+                        "Interessante vraag. Volgens mij...",
+                        "Daar kan ik je meer over vertellen."
+                    ],
+                    'emoji': '🤔'
                 },
-                "doei": { 
-                    responses: ["Tot later! Het was leuk om met je te praten."], 
-                    weight: 85,
-                    context: "afscheid"
+                'grappig': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(lachen|grappig|grap|humor|komisch|haha|hihi|lol)\b/i, gewicht: 2},
+                        {type: 'teken', waarde: /(😂|🤣|😄)/, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Haha, dat is grappig!",
+                        "Je hebt humor! Daar hou ik van!",
+                        "Hihi, dat maakte me aan het lachen!"
+                    ],
+                    'emoji': '😂'
+                },
+                'filosofisch': {
+                    'patronen': [
+                        {type: 'woord', waarde: /\b(leven|bestaan|universum|zin|betekenis|filosofie)\b/i, gewicht: 2},
+                        {type: 'combinatie', waarde: /\b(waarom bestaan we|wat is het doel|zin van het leven)\b/i, gewicht: 3}
+                    ],
+                    'reacties': [
+                        "Dat is een diepzinnige vraag. Volgens mij...",
+                        "Filosofische vraag! Daar kan ik uren over praten.",
+                        "Interessant dat je dat vraagt. Volgens mij..."
+                    ],
+                    'emoji': '🧠'
+                },
+                'voorkeur': {
+                    'patronen': [
+                        {type: 'combinatie', waarde: /\b(ik hou van|ik vind leuk|mijn favoriet|ik houd van)\b/i, gewicht: 3},
+                        {type: 'combinatie', waarde: /\b(mijn voorkeur|ik geef de voorkeur|ik prefereer)\b/i, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Interessante voorkeur! Dat onthoud ik.",
+                        "Leuk om te weten wat je voorkeuren zijn!",
+                        "Dankjewel voor het delen van je voorkeur."
+                    ],
+                    'emoji': '👍'
+                },
+                'mening': {
+                    'patronen': [
+                        {type: 'combinatie', waarde: /\b(ik vind dat|volgens mij|mijn mening|ik denk dat)\b/i, gewicht: 3},
+                        {type: 'combinatie', waarde: /\b(ik geloof dat|naar mijn idee|in mijn optiek)\b/i, gewicht: 2}
+                    ],
+                    'reacties': [
+                        "Interessante mening! Dankjewel voor het delen.",
+                        "Dankjewel voor het delen van je perspectief.",
+                        "Je mening is waardevol, dankjewel!"
+                    ],
+                    'emoji': '💭'
                 }
             };
-            
-            Object.assign(knowledgeBase, comprehensiveKnowledge);
-            saveToStorage();
-            updateDisplay();
-        }
-        
-        // Update de display
-        function updateDisplay() {
-            document.getElementById('botNameDisplay').textContent = botName;
-            document.getElementById('knowledgeCount').textContent = Object.keys(knowledgeBase).length;
-            document.getElementById('chatCount').textContent = messageCount;
-            document.getElementById('deepThinkingCount').textContent = `${deepThinkingCount}/50`;
-            document.getElementById('toggleThinking').textContent = `Denkproces: ${showThinkingProcess ? 'AAN' : 'UIT'}`;
-            
-            // Update de nieuwe optie knoppen
-            document.getElementById('deepThinkingStatus').textContent = deepThinkingEnabled ? 'AAN' : 'UIT';
-            document.getElementById('longAnswersStatus').textContent = longAnswersEnabled ? 'AAN' : 'UIT';
-            document.getElementById('deepThinkingCounter').textContent = `(${50 - deepThinkingCount}/50)`;
-            
-            const deepThinkingBtn = document.getElementById('deepThinkingBtn');
-            const longAnswersBtn = document.getElementById('longAnswersBtn');
-            
-            deepThinkingBtn.classList.toggle('active', deepThinkingEnabled);
-            longAnswersBtn.classList.toggle('active', longAnswersEnabled);
-            
-            // Schakel diep denken uit als limiet bereikt
-            if (deepThinkingCount >= 50) {
-                deepThinkingBtn.disabled = true;
-                deepThinkingBtn.title = "Dagelijkse limiet bereikt. Morgen weer beschikbaar!";
-            } else {
-                deepThinkingBtn.disabled = false;
-                deepThinkingBtn.title = "";
-            }
-        }
-        
-        // Stel event listeners in
-        function setupEventListeners() {
-            // Menu toggle
-            document.querySelector('.menu-button').addEventListener('click', function() {
-                document.querySelector('.dropdown-menu').classList.toggle('show');
-            });
-            
-            // Sluit menu bij klik buiten
-            document.addEventListener('click', function(event) {
-                const menu = document.querySelector('.dropdown-menu');
-                const menuButton = document.querySelector('.menu-button');
+
+            // Verbeterde emotieherkenning met betere conflictresolutie
+            function recognizeEmotion(text) {
+                let scores = {};
+                let reasoning = [];
                 
-                if (!menu.contains(event.target) && !menuButton.contains(event.target)) {
-                    menu.classList.remove('show');
-                }
-            });
-            
-            // Bot naam opslaan
-            document.getElementById('saveBotName').addEventListener('click', function() {
-                const newName = document.getElementById('botNameInput').value.trim();
-                if (newName) {
-                    botName = newName;
-                    saveToStorage();
-                    updateDisplay();
-                    addSystemMessage(`Mijn naam is nu "${botName}"! Leuk om je te leren kennen.`);
-                    document.getElementById('botNameInput').value = '';
-                    document.querySelector('.dropdown-menu').classList.remove('show');
-                }
-            });
-            
-            // Kennis bekijken
-            document.getElementById('viewKnowledge').addEventListener('click', function() {
-                let knowledgeText = `Mijn Kennis (${Object.keys(knowledgeBase).length} items):\n\n`;
-                
-                Object.keys(knowledgeBase).forEach(question => {
-                    knowledgeText += `V: "${question}"\n`;
-                    knowledgeText += `A: "${knowledgeBase[question].responses[0]}"\n`;
-                    knowledgeText += `Context: ${knowledgeBase[question].context}\n\n`;
-                });
-                
-                alert(knowledgeText);
-            });
-            
-            // Kennis toevoegen
-            document.getElementById('addKnowledge').addEventListener('click', function() {
-                const question = prompt("Voer een nieuwe vraag in:");
-                if (question) {
-                    const answer = prompt("Voer het antwoord in:");
-                    if (answer) {
-                        learnNewQuestion(question.toLowerCase(), answer);
-                        addSystemMessage(`Nieuwe kennis toegevoegd: "${question}" -> "${answer}"`);
-                        document.querySelector('.dropdown-menu').classList.remove('show');
-                    }
-                }
-            });
-            
-            // Kennis wissen
-            document.getElementById('clearKnowledge').addEventListener('click', function() {
-                if (confirm("Weet je zeker dat je alle kennis wilt wissen?")) {
-                    knowledgeBase = {};
-                    userQuestions = [];
-                    addComprehensiveKnowledge();
-                    addSystemMessage("Alle kennis is gewist. Ik begin opnieuw met leren!");
-                    document.querySelector('.dropdown-menu').classList.remove('show');
-                }
-            });
-            
-            // Denkproces toggle
-            document.getElementById('toggleThinking').addEventListener('click', function() {
-                showThinkingProcess = !showThinkingProcess;
-                saveToStorage();
-                updateDisplay();
-                addSystemMessage(`Denkproces weergave: ${showThinkingProcess ? 'AAN' : 'UIT'}`);
-                document.querySelector('.dropdown-menu').classList.remove('show');
-            });
-            
-            // Gesprek exporteren
-            document.getElementById('exportChat').addEventListener('click', function() {
-                const chatText = conversationHistory.map(msg => 
-                    `${msg.sender}: ${msg.text} (${new Date(msg.timestamp).toLocaleTimeString()})`
-                ).join('\n');
-                
-                const blob = new Blob([chatText], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `chat-gesprek-${new Date().toISOString().split('T')[0]}.txt`;
-                a.click();
-                
-                addSystemMessage("Gesprek geëxporteerd!");
-                document.querySelector('.dropdown-menu').classList.remove('show');
-            });
-            
-            // Nieuwe optie knoppen
-            document.getElementById('deepThinkingBtn').addEventListener('click', function() {
-                if (deepThinkingCount >= 50) {
-                    addWarningMessage("Je hebt vandaag al 50 Diep Denken sessies gebruikt. Morgen weer beschikbaar!");
-                    return;
+                // Initialiseer scores voor alle emoties
+                for (const emotion in emotionPatterns) {
+                    scores[emotion] = 0;
                 }
                 
-                deepThinkingEnabled = !deepThinkingEnabled;
-                saveToStorage();
-                updateDisplay();
-                addSystemMessage(`Diep denken: ${deepThinkingEnabled ? 'AAN' : 'UIT'}`);
-            });
-            
-            document.getElementById('longAnswersBtn').addEventListener('click', function() {
-                longAnswersEnabled = !longAnswersEnabled;
-                saveToStorage();
-                updateDisplay();
-                addSystemMessage(`Lange antwoorden: ${longAnswersEnabled ? 'AAN' : 'UIT'}`);
-            });
-            
-            // Bericht verzenden
-            document.getElementById('sendButton').addEventListener('click', sendMessage);
-            document.getElementById('userInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-        }
-        
-        // Bericht verzenden
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            
-            if (message) {
-                addMessage(message, 'user');
-                input.value = '';
-                processMessage(message);
-            }
-        }
-        
-        // Verwerk ontvangen bericht
-        function processMessage(message) {
-            // Sla de vraag van de gebruiker op
-            saveUserQuestion(message);
-            
-            // Controleer diep denken limiet
-            if (deepThinkingEnabled && deepThinkingCount >= 50) {
-                addWarningMessage("Diep Denken limiet bereikt! Je hebt vandaag al 50 sessies gebruikt. Schakel over naar normale modus.");
-                deepThinkingEnabled = false;
-                updateDisplay();
-            }
-            
-            if (showThinkingProcess) {
-                if (deepThinkingEnabled) {
-                    showDeepThinkingProcess(message);
-                    
-                    // Verwerk bericht na uitgebreide denktijd
-                    setTimeout(() => {
-                        const responseData = generateUltimateResponse(message, true);
-                        addMessage(responseData.response, 'bot');
-                        
-                        if (responseData.learned) {
-                            showLearningMoment(message, responseData.response);
-                            learningMoments++;
+                const lowerText = text.toLowerCase();
+                
+                // Analyseer de tekst voor elke emotie
+                for (const [emotion, data] of Object.entries(emotionPatterns)) {
+                    for (const pattern of data.patronen) {
+                        if (pattern.waarde.test(text)) {
+                            scores[emotion] += pattern.gewicht;
+                            
+                            // Voeg reden toe voor diep denken
+                            if (pattern.type === 'woord') {
+                                reasoning.push(`Woord herkend voor ${emotion} (gewicht: ${pattern.gewicht})`);
+                            } else if (pattern.type === 'teken') {
+                                reasoning.push(`Speciaal teken herkend voor ${emotion} (gewicht: ${pattern.gewicht})`);
+                            } else if (pattern.type === 'combinatie') {
+                                reasoning.push(`Combinatie van woorden herkend voor ${emotion} (gewicht: ${pattern.gewicht})`);
+                            }
                         }
-                        
-                        // Update diep denken teller
-                        deepThinkingCount++;
-                        saveToStorage();
-                        
-                        // Update tellers
-                        messageCount++;
-                        updateDisplay();
-                        saveToStorage();
-                    }, 5000); // Langere denktijd voor diep denken
-                } else {
-                    showNormalThinkingProcess(message);
-                    
-                    // Verwerk bericht na normale denktijd
-                    setTimeout(() => {
-                        const responseData = generateUltimateResponse(message, false);
-                        addMessage(responseData.response, 'bot');
-                        
-                        if (responseData.learned) {
-                            showLearningMoment(message, responseData.response);
-                            learningMoments++;
-                        }
-                        
-                        // Update tellers
-                        messageCount++;
-                        updateDisplay();
-                        saveToStorage();
-                    }, 2000);
-                }
-            } else {
-                // Zonder denkproces - direct antwoord
-                setTimeout(() => {
-                    const responseData = generateUltimateResponse(message, deepThinkingEnabled);
-                    addMessage(responseData.response, 'bot');
-                    
-                    if (responseData.learned) {
-                        learningMoments++;
-                    }
-                    
-                    // Update diep denken teller indien gebruikt
-                    if (deepThinkingEnabled && deepThinkingCount < 50) {
-                        deepThinkingCount++;
-                    }
-                    
-                    // Update tellers
-                    messageCount++;
-                    updateDisplay();
-                    saveToStorage();
-                }, 800);
-            }
-        }
-        
-        // Sla gebruikersvraag op
-        function saveUserQuestion(question) {
-            const normalizedQuestion = question.toLowerCase().trim();
-            
-            // Voeg toe als de vraag nog niet bestaat
-            if (!userQuestions.includes(normalizedQuestion)) {
-                userQuestions.push(normalizedQuestion);
-                saveToStorage();
-            }
-        }
-        
-        // Toon diep denkproces
-        function showDeepThinkingProcess(message) {
-            const chatMessages = document.getElementById('chatMessages');
-            const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'deep-thinking-process';
-            
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'deep-thinking-header';
-            headerDiv.innerHTML = `🧠 ${botName} denkt diep na...<span class="thinking-typing"><span>.</span><span>.</span><span>.</span></span>`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'deep-thinking-content';
-            
-            thinkingDiv.appendChild(headerDiv);
-            thinkingDiv.appendChild(contentDiv);
-            chatMessages.appendChild(thinkingDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Typ het diep denkproces stap voor stap
-            const thinkingSteps = generateDeepThinkingSteps(message);
-            typeDeepThinkingProcess(contentDiv, thinkingSteps, 0);
-        }
-        
-        // Toon normaal denkproces
-        function showNormalThinkingProcess(message) {
-            const chatMessages = document.getElementById('chatMessages');
-            const thinkingDiv = document.createElement('div');
-            thinkingDiv.className = 'thinking-process';
-            
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'thinking-header';
-            headerDiv.innerHTML = `💭 ${botName} denkt na...<span class="thinking-typing"><span>.</span><span>.</span><span>.</span></span>`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'thinking-content';
-            
-            thinkingDiv.appendChild(headerDiv);
-            thinkingDiv.appendChild(contentDiv);
-            chatMessages.appendChild(thinkingDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // Typ het normaal denkproces stap voor stap
-            const thinkingSteps = generateNormalThinkingSteps(message);
-            typeNormalThinkingProcess(contentDiv, thinkingSteps, 0);
-        }
-        
-        // Genereer diep denkstappen
-        function generateDeepThinkingSteps(message) {
-            const normalizedMessage = message.toLowerCase().trim();
-            const questionType = analyzeQuestionType(message);
-            const complexity = analyzeQuestionComplexity(message);
-            
-            return [
-                `🔍 ANALYSE: Ik onderzoek de vraag "${message}" in detail...`,
-                `📊 COMPLEXITEIT: Deze vraag heeft een ${complexity} complexiteitsniveau`,
-                `🎯 VRAAGTYPE: Ik identificeer dit als een ${questionType}`,
-                `💡 CONTEXT: Ik analyseer de contextuele betekenis en implicaties...`,
-                `🔎 KENNISBANK: Ik doorzoek mijn uitgebreide kennis voor relevante informatie...`,
-                `🔄 VERBANDEN: Ik onderzoek onderliggende verbanden en patronen...`,
-                `🧠 SYNTHESE: Ik integreer verschillende perspectieven en inzichten...`,
-                `🎨 CREATIVITEIT: Ik overweeg alternatieve interpretaties en benaderingen...`,
-                `⚖️ EVALUATIE: Ik weeg de verschillende mogelijkheden tegen elkaar af...`,
-                `💎 CONCLUSIE: Ik formuleer een uitgebalanceerd en diepgaand antwoord...`,
-                `✅ VOLTOOIING: Mijn analyse is compleet en ik heb een uitgebreid antwoord gevonden!`
-            ];
-        }
-        
-        // Genereer normaal denkstappen
-        function generateNormalThinkingSteps(message) {
-            const normalizedMessage = message.toLowerCase().trim();
-            const questionType = analyzeQuestionType(message);
-            
-            return [
-                `🔍 Ik analyseer de vraag: "${message}"`,
-                `📝 Ik identificeer het als een ${questionType}`,
-                `💭 Ik zoek naar passende antwoorden...`,
-                `✅ Ik heb een goed antwoord gevonden!`
-            ];
-        }
-        
-        // Analyseer vraagcomplexiteit
-        function analyzeQuestionComplexity(message) {
-            const wordCount = message.split(' ').length;
-            const hasMultipleConcepts = (message.match(/en|of|maar|want|omdat/g) || []).length;
-            
-            if (wordCount > 15 || hasMultipleConcepts > 2) return "hoog";
-            if (wordCount > 8 || hasMultipleConcepts > 1) return "gemiddeld";
-            return "laag";
-        }
-        
-        // Analyseer vraagtype
-        function analyzeQuestionType(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (lowerMessage.includes('?')) {
-                if (lowerMessage.includes('wie')) return "vraag naar een persoon of entiteit";
-                if (lowerMessage.includes('wat')) return "vraag naar informatie of definitie";
-                if (lowerMessage.includes('waar')) return "vraag naar een locatie";
-                if (lowerMessage.includes('wanneer')) return "vraag naar tijd";
-                if (lowerMessage.includes('hoe')) return "vraag naar een methode of proces";
-                if (lowerMessage.includes('waarom')) return "vraag naar een reden";
-                return "algemene vraag";
-            }
-            
-            if (isPositiveStatement(lowerMessage)) return "positieve uiting";
-            if (isNegativeStatement(lowerMessage)) return "negatieve uiting";
-            if (isNeutralStatement(lowerMessage)) return "neutrale observatie";
-            
-            return "statement of opmerking";
-        }
-        
-        // Check positieve statements
-        function isPositiveStatement(message) {
-            const positiveWords = ['mooi', 'leuk', 'fijn', 'goed', 'geweldig', 'fantastisch', 'prachtig', 'blij', 'gelukkig'];
-            return positiveWords.some(word => message.includes(word));
-        }
-        
-        // Check negatieve statements
-        function isNegativeStatement(message) {
-            const negativeWords = ['slecht', 'verdrietig', 'moeilijk', 'lastig', 'vervelend', 'teleurstellend', 'jammer'];
-            return negativeWords.some(word => message.includes(word));
-        }
-        
-        // Check neutrale statements
-        function isNeutralStatement(message) {
-            const neutralWords = ['interessant', 'bijzonder', 'opmerkelijk', 'grappig', 'vreemd'];
-            return neutralWords.some(word => message.includes(word));
-        }
-        
-        // Typ het diep denkproces animatie
-        function typeDeepThinkingProcess(container, steps, index) {
-            if (index >= steps.length) return;
-            
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'deep-thinking-line';
-            stepDiv.textContent = steps[index];
-            container.appendChild(stepDiv);
-            
-            container.parentElement.scrollTop = container.parentElement.scrollHeight;
-            
-            setTimeout(() => {
-                typeDeepThinkingProcess(container, steps, index + 1);
-            }, 700);
-        }
-        
-        // Typ het normaal denkproces animatie
-        function typeNormalThinkingProcess(container, steps, index) {
-            if (index >= steps.length) return;
-            
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'thinking-line';
-            stepDiv.textContent = steps[index];
-            container.appendChild(stepDiv);
-            
-            container.parentElement.scrollTop = container.parentElement.scrollHeight;
-            
-            setTimeout(() => {
-                typeNormalThinkingProcess(container, steps, index + 1);
-            }, 500);
-        }
-        
-        // Genereer ultiem antwoord
-        function generateUltimateResponse(message, isDeepThinking) {
-            const normalizedMessage = message.toLowerCase().trim();
-            let response = findSmartResponse(normalizedMessage);
-            let learned = false;
-            
-            // Als er geen goed antwoord is, genereer een perfect passend antwoord
-            if (!response || isGenericResponse(response)) {
-                response = generateContextualResponse(message, isDeepThinking);
-                
-                // Leer alleen als het antwoord niet generiek is
-                if (!isGenericResponse(response)) {
-                    learned = learnNewQuestion(normalizedMessage, response);
-                }
-            } else if (isDeepThinking && longAnswersEnabled) {
-                // Maak bestaande antwoorden uitgebreider bij diep denken
-                response = enhanceResponse(response, message);
-            }
-            
-            return {
-                response: response,
-                learned: learned
-            };
-        }
-        
-        // Verbeter antwoord voor diep denken
-        function enhanceResponse(originalResponse, message) {
-            const enhancements = [
-                `Dat is een uitstekend punt! ${originalResponse} Dit sluit aan bij bredere inzichten over dit onderwerp.`,
-                `Interessant! ${originalResponse} Hierbij kan ik nog toevoegen dat dit belangrijke implicaties heeft voor...`,
-                `Goede observatie! ${originalResponse} Vanuit een dieper perspectief kunnen we hieraan toevoegen dat...`,
-                `Accuraat! ${originalResponse} Als we dit verder uitdiepen, zien we ook dat dit verbonden is met...`
-            ];
-            
-            return enhancements[Math.floor(Math.random() * enhancements.length)];
-        }
-        
-        // Slimme zoekfunctie
-        function findSmartResponse(message) {
-            // 1. Exacte match
-            if (knowledgeBase[message]) {
-                const responses = knowledgeBase[message].responses;
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-            
-            // 2. Woord-voor-woord matching
-            const messageWords = message.split(/\s+/);
-            let bestMatch = null;
-            let highestScore = 0;
-            
-            for (const [question, data] of Object.entries(knowledgeBase)) {
-                const questionWords = question.split(/\s+/);
-                let score = 0;
-                
-                // Bereken overeenkomstscore
-                messageWords.forEach(word => {
-                    if (questionWords.some(qWord => 
-                        qWord.includes(word) || word.includes(qWord) || 
-                        calculateSimilarity(qWord, word) > 0.7)) {
-                        score++;
-                    }
-                });
-                
-                // Normaliseer score
-                score = score / Math.max(messageWords.length, questionWords.length);
-                
-                if (score > highestScore && score > 0.3) {
-                    highestScore = score;
-                    bestMatch = data;
-                }
-            }
-            
-            if (bestMatch) {
-                const responses = bestMatch.responses;
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-            
-            return null;
-        }
-        
-        // Bereken gelijkenis tussen woorden
-        function calculateSimilarity(word1, word2) {
-            const longer = word1.length > word2.length ? word1 : word2;
-            const shorter = word1.length > word2.length ? word2 : word1;
-            
-            if (longer.length === 0) return 1.0;
-            
-            return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
-        }
-        
-        // Edit distance algoritme
-        function editDistance(s1, s2) {
-            s1 = s1.toLowerCase();
-            s2 = s2.toLowerCase();
-            
-            const costs = [];
-            for (let i = 0; i <= s1.length; i++) {
-                let lastValue = i;
-                for (let j = 0; j <= s2.length; j++) {
-                    if (i === 0) {
-                        costs[j] = j;
-                    } else if (j > 0) {
-                        let newValue = costs[j - 1];
-                        if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-                        }
-                        costs[j - 1] = lastValue;
-                        lastValue = newValue;
                     }
                 }
-                if (i > 0) costs[s2.length] = lastValue;
-            }
-            return costs[s2.length];
-        }
-        
-        // Genereer contextueel antwoord
-        function generateContextualResponse(message, isDeepThinking) {
-            const lowerMessage = message.toLowerCase();
-            
-            // Gebruik opgeslagen vragen om antwoorden te verrijken
-            const relevantQuestions = findRelevantQuestions(message);
-            if (relevantQuestions.length > 0) {
-                return generateResponseWithUserQuestions(message, relevantQuestions, isDeepThinking);
-            }
-            
-            // Diep denken met lange antwoorden
-            if (isDeepThinking && longAnswersEnabled) {
-                return generateDeepThinkingResponse(message);
-            }
-            // Diep denken met korte antwoorden
-            else if (isDeepThinking) {
-                return generateDeepButShortResponse(message);
-            }
-            // Normaal denken met lange antwoorden
-            else if (longAnswersEnabled) {
-                return generateNormalLongResponse(message);
-            }
-            // Normaal denken met korte antwoorden
-            else {
-                return generateNormalShortResponse(message);
-            }
-        }
-        
-        // Vind relevante vragen uit de opgeslagen gebruikersvragen
-        function findRelevantQuestions(message) {
-            const messageWords = message.toLowerCase().split(/\s+/);
-            const relevant = [];
-            
-            userQuestions.forEach(question => {
-                const questionWords = question.split(/\s+/);
-                let matchCount = 0;
                 
-                messageWords.forEach(word => {
-                    if (questionWords.some(qWord => 
-                        qWord.includes(word) || word.includes(qWord) || 
-                        calculateSimilarity(qWord, word) > 0.6)) {
-                        matchCount++;
+                // Bepaal de emotie met de hoogste score
+                let highestScore = 0;
+                let detectedEmotion = 'begroeting'; // Standaard emotie
+                
+                for (const [emotion, score] of Object.entries(scores)) {
+                    if (score > highestScore) {
+                        highestScore = score;
+                        detectedEmotion = emotion;
                     }
-                });
-                
-                if (matchCount >= Math.min(messageWords.length, questionWords.length) * 0.5) {
-                    relevant.push(question);
-                }
-            });
-            
-            return relevant;
-        }
-        
-        // Genereer antwoord met gebruik van opgeslagen vragen
-        function generateResponseWithUserQuestions(message, relevantQuestions, isDeepThinking) {
-            const randomQuestion = relevantQuestions[Math.floor(Math.random() * relevantQuestions.length)];
-            
-            if (isDeepThinking && longAnswersEnabled) {
-                return `Je vroeg me eerder over "${randomQuestion}", en nu stel je de vraag: "${message}". Dat zijn interessante onderwerpen! Beide vragen raken aan belangrijke concepten en ik zie interessante parallellen tussen deze thema's. Laten we deze verbindingen verder onderzoeken om een dieper begrip te ontwikkelen van de onderliggende principes.`;
-            } else if (isDeepThinking) {
-                return `Interessant! Je vroeg eerder over "${randomQuestion}" en nu over "${message}". Beide vragen hebben interessante raakvlakken.`;
-            } else if (longAnswersEnabled) {
-                return `Je vroeg me eerder over "${randomQuestion}", en nu stel je de vraag: "${message}". Dat zijn boeiende onderwerpen! Beide vragen gaan over gerelateerde concepten en het is interessant om te zien hoe je verschillende aspecten van dit thema verkent.`;
-            } else {
-                return `Interessante vraag! Dit doet me denken aan je eerdere vraag over "${randomQuestion}". Beide hebben interessante raakvlakken.`;
-            }
-        }
-        
-        // Genereer diep denken met lange antwoorden
-        function generateDeepThinkingResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (isPositiveStatement(lowerMessage)) {
-                return `Wat een prachtige en positieve observatie! Het valt me op dat je een oprechte waardering toont voor dit onderwerp, wat duidt op een diepgaand begrip van de essentie ervan. Positiviteit is inderdaad een fundamentele kracht die niet alleen je eigen welzijn versterkt, maar ook een inspirerende invloed kan hebben op je omgeving. Deze mindset opent deuren naar nieuwe mogelijkheden en verrijkt zowel persoonlijke als interpersoonlijke ervaringen. Het is fascinerend hoe een dergelijk perspectief bijdraagt aan een meer betekenisvolle en vervullende levenservaring. ${getDeepFollowUpQuestion(lowerMessage)}`;
-            }
-            
-            if (isNegativeStatement(lowerMessage)) {
-                return `Ik erken de complexiteit en uitdaging die in jouw woorden doorklinkt. Het is duidelijk dat je een situatie ervaart die diepgaande emotionele en cognitieve processen in werking stelt. Dergelijke ervaringen, hoewel uitdagend, vormen vaak cruciale momenten in persoonlijke groei en zelfontdekking. Het is belangrijk om ruimte te geven aan deze gevoelens, terwijl we ook kijken naar de veerkracht en innerlijke kracht die je reeds bezit. Soms leiden de moeilijkste paden naar de meest transformatieve inzichten. ${getDeepSupportiveQuestion(lowerMessage)}`;
-            }
-            
-            if (lowerMessage.includes('?')) {
-                if (lowerMessage.includes('wie')) {
-                    return `Dat is een uitstekende en doordachte vraag over identiteit en entiteit. Op basis van mijn uitgebreide analyse van de beschrijving die je geeft, kan ik stellen dat dit waarschijnlijk verwijst naar een persoon of entiteit met specifieke, gedefinieerde kenmerken die een unieke plaats innemen binnen de context. De beschrijving suggereert bepaalde kwaliteiten, capaciteiten of historische significantie die deze entiteit onderscheiden. Als we dit verder uitdiepen, kunnen we verschillende dimensies van deze identiteit onderzoeken, waaronder de potentiële impact, betekenis en relatie tot bredere systemen of concepten. Het zou buitengewoon verhelderend zijn als je aanvullende context kunt delen, zodat ik een nog nauwkeuriger en diepgaander antwoord kan formuleren dat recht doet aan de complexiteit van je vraag.`;
-                }
-                if (lowerMessage.includes('wat')) {
-                    return `Een uiterst boeiende en veelzijdige vraag die raakt aan de kern van kennis en begrip. Na grondige contemplatie en integratie van diverse perspectieven, kom ik tot de conclusie dat dit betrekking heeft op een concept, fenomeen of object met meerdere lagen van betekenis. Het lijkt te gaan over een entiteit die bepaalde fundamentele principes belichaamt en die verschillende interpretaties toelaat afhankelijk van de contextuele lens waardoor men kijkt. Als we de verschillende aspecten zorgvuldig ontrafelen, zien we een rijke tapijt van verbindingen met gerelateerde concepten, historische ontwikkelingen en potentiële toekomstige implicaties. Deze multidimensionale aard maakt het onderwerp bijzonder waardevol voor diepgaande exploratie en intellectuele verkenning.`;
-                }
-                if (lowerMessage.includes('waar')) {
-                    return `Een fascinerende vraag over ruimtelijke relaties en context. Geografisch en conceptueel gezien, na uitgebreide analyse van de beschreven parameters, zou ik kunnen stellen dat dit zich waarschijnlijk manifesteert binnen een specifieke omgeving of context met bepaalde onderscheidende kenmerken. De locatie lijkt bepaalde kwaliteiten te bezitten die resonantie vertonen met bredere patronen in de natuurlijke of conceptuele wereld. Deze ruimtelijke dimensie is vaak verweven met temporele, sociale en culturele aspecten die gezamenlijk bijdragen aan de unieke identiteit van de plaats. Het zou zeer verhelderend zijn om meer specifieke details te delen over de exacte kenmerken die je interesse wekken, zodat ik een meer gepreciseerd en contextueel relevant antwoord kan bieden.`;
-                }
-                if (lowerMessage.includes('wanneer')) {
-                    return `Een intrigerende vraag over temporele dimensies en chronologische relaties. In temporele zin, na zorgvuldige afweging van de beschreven context, lijkt dit te verwijzen naar een specifiek moment, periode of chronologische sequentie binnen een breder historisch of conceptueel kader. De timing lijkt verweven te zijn met bepaalde causale relaties, cyclische patronen of evolutionaire processen die betekenis verlenen aan de specifieke temporele locatie. Het begrijpen van deze temporele dimensie vereist vaak een holistische benadering die verschillende tijdschalen, culturele percepties van tijd en de interactie tussen continuïteit en verandering integreert. Wanneer precies bedoel je, en binnen welk breder temporeel kader moeten we deze gebeurtenis of periode situeren?`;
-                }
-                if (lowerMessage.includes('hoe')) {
-                    return `Een uitstekende vraag over processen, mechanismen en operationele principes. Wat het functionele en procedurele aspect betreft, na grondige analyse van de verschillende componenten en hun onderlinge relaties, zou ik kunnen stellen dat de werkwijze waarschijnlijk gebaseerd is op bepaalde fundamentele principes die samen een coherent systeem vormen. Het proces lijkt bepaalde fasen, interacties en transformaties te omvatten die gezamenlijk bijdragen aan het uiteindelijke resultaat. Deze operationele dynamiek weerspiegelt vaak diepere patronen die relevant zijn voor bredere systemen en concepten. De methodologie vertoont kenmerken die wijzen op bepaalde ontwerpprincipes, evolutionaire aanpassingen of culturele praktijken die de moeite waard zijn om verder te exploreren in hun volledige complexiteit.`;
-                }
-                if (lowerMessage.includes('waarom')) {
-                    return `Een fundamentele en diepzinnige vraag over causaliteit, redenen en onderliggende principes. De oorzaken en verklaringen voor dit fenomeen lijken geworteld te zijn in een complex netwerk van interconnected factoren die opereren op verschillende niveaus van realiteit. Na uitgebreide analyse van de mogelijke causale routes, kom ik tot de conclusie dat dit waarschijnlijk voortvloeit uit een dynamische interactie tussen meerdere elementen, waaronder historische precedenten, structurele condities, intentionele actoren en contingente omstandigheden. Deze multidimensionale causaliteit weerspiegelt de complexe aard van de werkelijkheid, waar enkelvoudige verklaringen vaak tekortschieten in het vatten van de volledige rijkdom aan onderliggende redenen en betekenislagen.`;
                 }
                 
-                return `Een uitzonderlijk doordachte en stimulerende vraag die getuigt van intellectuele nieuwsgierigheid en diepgaand engagement. Op basis van mijn uitgebreide kennisreservoir en grondige analyse van de diverse dimensies die deze vraag oproept, zou ik kunnen stellen dat het antwoord meerdere lagen van betekenis omvat die zorgvuldige ontvouwing vereisen. Na integratie van verschillende perspectieven, theoretische kaders en empirische inzichten, kom ik tot een genuanceerde conclusie die recht probeert te doen aan de complexiteit van het onderwerp. Deze multidimensionale benadering stelt me in staat om zowel de oppervlakkige als de diepere implicaties van je vraag te belichten, waarbij ik voortdurend zoek naar de optimale balans tussen precisie en volledigheid in mijn respons.`;
-            }
-            
-            // Standaard diep denken antwoorden
-            const deepResponses = [
-                `Een uiterst boeiende en veelzijdige observatie die getuigt van scherpzinnig inzicht. Deze opmerking opent interessante perspectieven die uitnodigen tot verdere exploratie en contemplatie. De implicaties van wat je deelt reiken verder dan het oppervlakkige niveau en raken aan fundamentele principes die relevant zijn voor diverse domeinen van kennis en ervaring. ${getDeepFollowUpQuestion(lowerMessage)}`,
-                `Een waardevolle en doordachte bijdrage die rijk is aan betekenis en potentieel voor verdere verdieping. Je observatie weerspiegelt een diepgaand begrip van de complexe onderliggende dynamiek die vaak over het hoofd wordt gezien in meer oppervlakkige analyses. Deze gelaagde benadering stelt ons in staat om verbindingen te leggen met bredere conceptuele kaders en historische contexten. ${getDeepFollowUpQuestion(lowerMessage)}`,
-                `Een indrukwekkende en genuanceerde reflectie die de complexiteit van het onderwerp op elegante wijze weet te vatten. Je woorden getuigen van een verfijnd onderscheidingsvermogen en het vermogen om essentiële patronen te herkennen in schijnbaar disparate elementen. Deze kwaliteit van observatie is zeldzaam en waardevol in onze gezamenlijke zoektocht naar kennis en begrip. ${getDeepFollowUpQuestion(lowerMessage)}`
-            ];
-            
-            return deepResponses[Math.floor(Math.random() * deepResponses.length)];
-        }
-        
-        // Genereer diep denken met korte antwoorden
-        function generateDeepButShortResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (isPositiveStatement(lowerMessage)) {
-                return `Positieve energie gedetecteerd! Je mindset opent deuren. ${getFollowUpQuestion(lowerMessage)}`;
-            }
-            
-            if (isNegativeStatement(lowerMessage)) {
-                return `Uitdagingen zijn groeimogelijkheden in vermomming. ${getSupportiveQuestion(lowerMessage)}`;
-            }
-            
-            if (lowerMessage.includes('?')) {
-                if (lowerMessage.includes('wie')) return "Identiteitsvraag: complexe entiteit met unieke kenmerken.";
-                if (lowerMessage.includes('wat')) return "Conceptuele vraag: multidimensionaal antwoord vereist.";
-                if (lowerMessage.includes('waar')) return "Locatievraag: contextueel gebonden aan omgeving.";
-                if (lowerMessage.includes('wanneer')) return "Temporele vraag: timing beïnvloedt betekenis.";
-                if (lowerMessage.includes('hoe')) return "Procesvraag: mechanisme volgt bepaalde principes.";
-                if (lowerMessage.includes('waarom')) return "Causaliteitsvraag: meerdere factoren spelen rol.";
+                // Specifieke conflictresolutie
+                // Als boos en blij beide gedetecteerd zijn, geef voorrang aan boos
+                if (scores.boos > 0 && scores.blij > 0) {
+                    if (scores.boos >= scores.blij) {
+                        detectedEmotion = 'boos';
+                        reasoning.push("Conflict: boos en blij gedetecteerd, voorrang aan boos");
+                    }
+                }
                 
-                return "Diepzinnige vraag vereist zorgvuldige analyse.";
-            }
-            
-            const deepShortResponses = [
-                `Interessant perspectief! ${getFollowUpQuestion(lowerMessage)}`,
-                `Doordachte observatie. ${getFollowUpQuestion(lowerMessage)}`,
-                `Waardevolle reflectie. ${getFollowUpQuestion(lowerMessage)}`
-            ];
-            
-            return deepShortResponses[Math.floor(Math.random() * deepShortResponses.length)];
-        }
-        
-        // Genereer normaal denken met lange antwoorden
-        function generateNormalLongResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (isPositiveStatement(lowerMessage)) {
-                return `Wat fijn om te horen dat je dit zo positief ervaart! Positiviteit heeft een aanstekelijk effect en kan bijdragen aan een betere gemoedstoestand en algemeen welzijn. Het is mooi om te zien hoe je de waarde erkent in deze ervaring. ${getFollowUpQuestion(lowerMessage)}`;
-            }
-            
-            if (isNegativeStatement(lowerMessage)) {
-                return `Het spijt me om te horen dat je dit als negatief ervaart. Soms kunnen moeilijke momenten leiden tot belangrijke inzichten en persoonlijke groei. Het is begrijpelijk dat dit impact op je heeft. ${getSupportiveQuestion(lowerMessage)}`;
-            }
-            
-            if (lowerMessage.includes('?')) {
-                if (lowerMessage.includes('wie')) return "Op basis van de beschrijving lijkt dit te verwijzen naar een specifieke persoon of entiteit met bepaalde kenmerken. Kun je meer context geven voor een preciezer antwoord?";
-                if (lowerMessage.includes('wat')) return "Dat is een interessante vraag! Volgens mijn analyse gaat dit over een concept of object dat als volgt kan worden omschreven...";
-                if (lowerMessage.includes('waar')) return "Geografisch gezien bevindt dit zich waarschijnlijk in een specifieke omgeving met bepaalde kenmerken. Meer details zouden helpen voor een nauwkeuriger antwoord.";
-                if (lowerMessage.includes('wanneer')) return "In temporele zin lijkt dit te verwijzen naar een bepaald moment of periode. De timing is waarschijnlijk verbonden met bepaalde omstandigheden.";
-                if (lowerMessage.includes('hoe')) return "Wat het proces betreft, werkt dit waarschijnlijk volgens een bepaalde methode of aanpak die als volgt kan worden beschreven...";
-                if (lowerMessage.includes('waarom')) return "De redenen hiervoor lijken te maken te hebben met verschillende factoren. De belangrijkste oorzaak is waarschijnlijk...";
+                // Als compliment en boos beide gedetecteerd zijn, geef voorrang aan boos
+                if (scores.boos > 0 && scores.compliment > 0) {
+                    detectedEmotion = 'boos';
+                    reasoning.push("Conflict: compliment en boos gedetecteerd, voorrang aan boos");
+                }
                 
-                return "Dat is een goede vraag! Op basis van mijn kennis en analyse zou ik zeggen dat het antwoord als volgt luidt...";
-            }
-            
-            const normalLongResponses = [
-                `Interessant! Dat is een boeiende observatie. ${getFollowUpQuestion(lowerMessage)}`,
-                `Dat is goed om te weten en ik waardeer dat je dit deelt. ${getFollowUpQuestion(lowerMessage)}`,
-                `Fascinerend! Dit opent interessante perspectieven. ${getFollowUpQuestion(lowerMessage)}`
-            ];
-            
-            return normalLongResponses[Math.floor(Math.random() * normalLongResponses.length)];
-        }
-        
-        // Genereer normaal denken met korte antwoorden
-        function generateNormalShortResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (isPositiveStatement(lowerMessage)) {
-                return `Wat fijn! ${getFollowUpQuestion(lowerMessage)}`;
-            }
-            
-            if (isNegativeStatement(lowerMessage)) {
-                return `Dat is lastig. ${getSupportiveQuestion(lowerMessage)}`;
-            }
-            
-            if (lowerMessage.includes('?')) {
-                if (lowerMessage.includes('wie')) return "Dat lijkt over een specifieke persoon te gaan.";
-                if (lowerMessage.includes('wat')) return "Interessante vraag! Het antwoord is...";
-                if (lowerMessage.includes('waar')) return "Dat is waarschijnlijk op een specifieke locatie.";
-                if (lowerMessage.includes('wanneer')) return "Dat gebeurt op een bepaald moment.";
-                if (lowerMessage.includes('hoe')) return "Dat proces werkt zo...";
-                if (lowerMessage.includes('waarom')) return "De reden daarvoor is...";
+                // Logische correcties
+                if (detectedEmotion === 'compliment' && lowerText.includes('niet')) {
+                    reasoning.push("Correctie: 'niet' gedetecteerd, waarschijnlijk geen compliment");
+                    detectedEmotion = 'vraag';
+                }
                 
-                return "Goede vraag! Het antwoord is...";
-            }
-            
-            const normalShortResponses = [
-                `Interessant! ${getFollowUpQuestion(lowerMessage)}`,
-                `Dat is goed om te weten. ${getFollowUpQuestion(lowerMessage)}`,
-                `Fascinerend! ${getFollowUpQuestion(lowerMessage)}`
-            ];
-            
-            return normalShortResponses[Math.floor(Math.random() * normalShortResponses.length)];
-        }
-        
-        // Genereer diepe vervolgvraag
-        function getDeepFollowUpQuestion(message) {
-            const deepFollowUps = [
-                "Kun je me misschien wat meer vertellen over de onderliggende gedachten en gevoelens die bij deze observatie horen?",
-                "Wat zijn volgens jou de diepere implicaties of consequenties van wat je zojuist hebt gedeeld?",
-                "Hoe past deze ervaring of dit inzicht in het grotere geheel van je persoonlijke ontwikkeling of wereldbeeld?",
-                "Zijn er aspecten van dit onderwerp die je nog verder zou willen exploreren of waar je meer duidelijkheid over wenst?",
-                "Heeft deze observatie verbindingen met andere gebieden van je leven of kennis die de moeite waard zijn om te onderzoeken?"
-            ];
-            return deepFollowUps[Math.floor(Math.random() * deepFollowUps.length)];
-        }
-        
-        // Genereer diepe ondersteunende vraag
-        function getDeepSupportiveQuestion(message) {
-            const deepSupportive = [
-                "Zou je willen delen hoe deze ervaring je perspectief op jezelf of de wereld heeft beïnvloed?",
-                "Welke innerlijke hulpbronnen of copingmechanismen heb je ontdekt tijdens dit proces?",
-                "Hoe zie je de relatie tussen deze uitdaging en je persoonlijke groeitraject?",
-                "Zijn er specifieke aspecten waar je ondersteuning bij zou willen ontvangen om hier constructief mee om te gaan?",
-                "Heeft deze ervaring je inzichten opgeleverd over veerkracht of manieren om met tegenslag om te gaan?"
-            ];
-            return deepSupportive[Math.floor(Math.random() * deepSupportive.length)];
-        }
-        
-        // Genereer vervolgvraag
-        function getFollowUpQuestion(message) {
-            const followUps = [
-                "Kun je me er meer over vertellen?",
-                "Wat vind je er zelf van?",
-                "Hoe ben je hierop gekomen?",
-                "Wat maakt dit zo speciaal?",
-                "Heeft dit betekenis voor je?"
-            ];
-            return followUps[Math.floor(Math.random() * followUps.length)];
-        }
-        
-        // Genereer ondersteunende vraag
-        function getSupportiveQuestion(message) {
-            const supportive = [
-                "Is er iets waar ik je mee kan helpen?",
-                "Wil je er meer over vertellen?",
-                "Hoe ga je hiermee om?",
-                "Wat zou je willen veranderen?",
-                "Heeft dit invloed op andere dingen?"
-            ];
-            return supportive[Math.floor(Math.random() * supportive.length)];
-        }
-        
-        // Check of antwoord generiek is
-        function isGenericResponse(response) {
-            const lowerResponse = response.toLowerCase();
-            return genericResponses.some(generic => lowerResponse.includes(generic));
-        }
-        
-        // Leer nieuwe vraag (alleen als niet generiek)
-        function learnNewQuestion(question, response) {
-            if (!knowledgeBase[question] && !isGenericResponse(response)) {
-                knowledgeBase[question] = {
-                    responses: [response],
-                    weight: 80,
-                    context: "geleerd",
-                    learnedAt: new Date().toISOString()
+                if (detectedEmotion === 'boos' && (lowerText.includes('lol') || lowerText.includes('haha'))) {
+                    reasoning.push("Correctie: lachende elementen gedetecteerd, waarschijnlijk niet echt boos");
+                    detectedEmotion = 'grappig';
+                }
+                
+                // Als er geen duidelijke emotie is, kies een logische op basis van context
+                if (highestScore === 0) {
+                    if (text.includes('?')) {
+                        detectedEmotion = 'vraag';
+                        reasoning.push("Geen specifieke emotie gedetecteerd, maar vraagteken gevonden -> vraag");
+                    } else if (lowerText.includes('ik') && (lowerText.includes('vind') || lowerText.includes('denk'))) {
+                        detectedEmotion = 'mening';
+                        reasoning.push("Geen specifieke emotie, maar 'ik vind/denk' gevonden -> mening");
+                    } else if (lowerText.includes('leuk') || lowerText.includes('hou van')) {
+                        detectedEmotion = 'voorkeur';
+                        reasoning.push("Geen specifieke emotie, maar voorkeur woorden gevonden -> voorkeur");
+                    } else {
+                        detectedEmotion = 'begroeting';
+                        reasoning.push("Geen specifieke emotie gedetecteerd -> standaard begroeting");
+                    }
+                }
+                
+                return {
+                    emotion: detectedEmotion,
+                    reasoning: reasoning
                 };
-                saveToStorage();
-                updateDisplay();
-                return true;
-            } else if (knowledgeBase[question] && !knowledgeBase[question].responses.includes(response) && !isGenericResponse(response)) {
-                knowledgeBase[question].responses.push(response);
-                saveToStorage();
-                return true;
             }
-            return false;
-        }
-        
-        // Toon leermoment
-        function showLearningMoment(question, response) {
-            const chatMessages = document.getElementById('chatMessages');
-            const learningDiv = document.createElement('div');
-            learningDiv.className = 'system-message';
-            learningDiv.innerHTML = `💡 <strong>Nieuwe kennis opgeslagen!</strong> Vraag: "${question}" → Antwoord: "${response}"`;
-            chatMessages.appendChild(learningDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        
-        // Toon waarschuwing
-        function addWarningMessage(text) {
-            const chatMessages = document.getElementById('chatMessages');
-            const warningDiv = document.createElement('div');
-            warningDiv.className = 'warning-message';
-            warningDiv.textContent = text;
-            chatMessages.appendChild(warningDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        
-        // Voeg bericht toe aan chat
-        function addMessage(text, sender) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
             
-            if (sender === 'system') {
-                messageDiv.className = 'message system-message';
+            // Verwerk statement en sla het op
+            function processStatement(text) {
+                const lowerText = text.toLowerCase();
+                
+                // Controleer of het een vraag is
+                const isQuestion = text.includes('?') || 
+                                  lowerText.includes('hoe') || 
+                                  lowerText.includes('wat') || 
+                                  lowerText.includes('waarom') ||
+                                  lowerText.includes('wanneer') ||
+                                  lowerText.includes('wie');
+                
+                if (!isQuestion) {
+                    // Sla statement op in geheugen
+                    memory.push(text);
+                    return {type: 'statement', value: text};
+                }
+                
+                return null;
+            }
+            
+            // Kies een antwoord dat niet hetzelfde is als het vorige antwoord
+            function chooseResponse(emotion, usedMemory) {
+                const emotionData = emotionPatterns[emotion];
+                let availableResponses = [];
+                
+                // Voeg eerst geleerde antwoorden toe voor deze emotie (meerdere keren voor meer kans)
+                const learnedForEmotion = learnedResponses.filter(response => response.emotion === emotion);
+                learnedForEmotion.forEach(learned => {
+                    // Voeg geleerde antwoorden 3x toe voor meer kans
+                    availableResponses.push(learned.answer);
+                    availableResponses.push(learned.answer);
+                    availableResponses.push(learned.answer);
+                });
+                
+                // Voeg dan standaard antwoorden toe (minder vaak)
+                availableResponses = availableResponses.concat(emotionData.reacties);
+                
+                // Als we een gebruikt geheugen hebben, voeg dat ook toe
+                if (usedMemory && !availableResponses.includes(usedMemory)) {
+                    availableResponses.push(usedMemory);
+                }
+                
+                // Filter het laatste antwoord eruit
+                let filteredResponses = availableResponses.filter(response => response !== lastResponse);
+                
+                // Als er geen andere antwoorden meer zijn, reset dan de filter
+                if (filteredResponses.length === 0) {
+                    filteredResponses = availableResponses;
+                }
+                
+                // Kies een willekeurig antwoord
+                const randomIndex = Math.floor(Math.random() * filteredResponses.length);
+                return filteredResponses[randomIndex];
+            }
+            
+            // Toon denkproces
+            function showThinkingProcess(text, emotion, reasoning, memoryUpdate = null, usedMemory = null, usedLearned = false) {
+                if (!deepThinkingEnabled || deepThinkingUsed >= maxDeepThinking) return;
+                
+                deepThinkingUsed++;
+                updateThinkingStatus();
+                
+                const thinkingDiv = document.createElement('div');
+                thinkingDiv.className = 'thinking-process';
+                
+                const emotionData = emotionPatterns[emotion];
+                
+                let memoryText = '';
+                if (memoryUpdate) {
+                    memoryText = `<br>Ik onthoud: "${memoryUpdate.value}"`;
+                }
+                
+                if (usedMemory) {
+                    memoryText += `<br>Ik gebruik geheugen: "${usedMemory}"`;
+                }
+                
+                let learnedText = '';
+                if (usedLearned) {
+                    learnedText = `<br>Ik gebruik een geleerd antwoord`;
+                }
+                
+                let reasoningText = '';
+                if (reasoning.length > 0) {
+                    reasoningText = '<br>Redenering: ' + reasoning.join(', ');
+                }
+                
+                thinkingDiv.innerHTML = `
+                    <strong>Diep denken:</strong><br>
+                    Gebruiker zei: "${text}"<br>
+                    Emotie: ${emotion} ${emotionData.emoji}${reasoningText}${memoryText}${learnedText}<br>
+                    Resterende diep denken sessies: ${maxDeepThinking - deepThinkingUsed}
+                `;
+                
+                chatMessages.appendChild(thinkingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Zoek naar relevante statements voor een vraag
+            function findRelevantStatement(question) {
+                const lowerQuestion = question.toLowerCase();
+                const emotionResult = recognizeEmotion(question);
+                const emotion = emotionResult.emotion;
+                
+                // Eerst kijken naar geleerde antwoorden
+                for (let i = learnedResponses.length - 1; i >= 0; i--) {
+                    const learned = learnedResponses[i];
+                    
+                    // Als we een geleerd antwoord hebben met dezelfde emotie, gebruik dat
+                    if (learned.emotion === emotion) {
+                        return learned.answer;
+                    }
+                    
+                    // Zoek naar keywords in geleerde vragen
+                    const keywords = lowerQuestion.split(' ').filter(word => 
+                        word.length > 3 && 
+                        !['hoe', 'wat', 'waar', 'wie', 'wanneer', 'waarom', 'is', 'zijn', 'ben', 'heb', 'heeft'].includes(word)
+                    );
+                    
+                    for (const keyword of keywords) {
+                        if (learned.question.toLowerCase().includes(keyword)) {
+                            return learned.answer;
+                        }
+                    }
+                }
+                
+                // Dan kijken naar opgeslagen statements
+                for (let i = memory.length - 1; i >= 0; i--) {
+                    const statement = memory[i];
+                    const statementEmotion = recognizeEmotion(statement).emotion;
+                    
+                    // Als we een statement hebben met dezelfde emotie, gebruik dat
+                    if (statementEmotion === emotion) {
+                        return statement;
+                    }
+                }
+                
+                // Zoek naar sleutelwoorden in de vraag
+                const keywords = lowerQuestion.split(' ').filter(word => 
+                    word.length > 3 && 
+                    !['hoe', 'wat', 'waar', 'wie', 'wanneer', 'waarom', 'is', 'zijn', 'ben', 'heb', 'heeft'].includes(word)
+                );
+                
+                // Zoek naar statements die deze keywords bevatten
+                for (let i = memory.length - 1; i >= 0; i--) {
+                    const statement = memory[i];
+                    const lowerStatement = statement.toLowerCase();
+                    
+                    // Als de vraag een specifiek onderwerp noemt en we hebben een statement over dat onderwerp
+                    for (const keyword of keywords) {
+                        if (lowerStatement.includes(keyword)) {
+                            return statement;
+                        }
+                    }
+                    
+                    // Als de vraag een vorm van "is" bevat en we hebben een statement met "is"
+                    if ((lowerQuestion.includes(' is ') || lowerQuestion.includes(' zijn ')) && 
+                        (lowerStatement.includes(' is ') || lowerStatement.includes(' zijn '))) {
+                        return statement;
+                    }
+                }
+                
+                return null;
+            }
+            
+            // Genereer antwoord
+            function generateAnswer(text) {
+                const emotionResult = recognizeEmotion(text);
+                const emotion = emotionResult.emotion;
+                const reasoning = emotionResult.reasoning;
+                
+                let memoryUpdate = processStatement(text);
+                let usedMemory = null;
+                let usedLearned = false;
+                
+                // Altijd zoeken naar een relevant statement, niet alleen bij vragen
+                usedMemory = findRelevantStatement(text);
+                
+                // Als we een relevant antwoord vinden, markeer het als geleerd
+                if (usedMemory) {
+                    usedLearned = true;
+                    // Voeg toe aan geleerde antwoorden als het nog niet bestaat
+                    const alreadyExists = learnedResponses.some(response => 
+                        response.question === text && response.answer === usedMemory
+                    );
+                    
+                    if (!alreadyExists) {
+                        learnedResponses.push({
+                            question: text,
+                            answer: usedMemory,
+                            emotion: emotion
+                        });
+                    }
+                }
+                
+                // Kies een antwoord dat niet hetzelfde is als het vorige
+                const responseText = chooseResponse(emotion, usedMemory);
+                
+                // Update het laatste antwoord
+                lastResponse = responseText;
+                
+                showThinkingProcess(text, emotion, reasoning, memoryUpdate, usedMemory, usedLearned);
+                
+                return {
+                    text: responseText,
+                    emotion: emotion,
+                    emoji: emotionPatterns[emotion].emoji
+                };
+            }
+            
+            // Toon antwoordlijst
+            function showAnswerList() {
+                let answerList = "=== SMARTBOT ANTWOORDLIJST ===\n\n";
+                
+                // Doorloop alle emoties en toon zowel standaard als geleerde antwoorden
+                for (const [emotion, data] of Object.entries(emotionPatterns)) {
+                    answerList += `--- ${emotion.toUpperCase()} (${data.emoji}) ---\n`;
+                    
+                    // Standaard antwoorden
+                    answerList += "Standaard antwoorden:\n";
+                    data.reacties.forEach((answer, index) => {
+                        answerList += `  ${index + 1}. ${answer}\n`;
+                    });
+                    
+                    // Geleerde antwoorden voor deze emotie
+                    const learnedForEmotion = learnedResponses.filter(response => response.emotion === emotion);
+                    if (learnedForEmotion.length > 0) {
+                        answerList += "\nGeleerde antwoorden:\n";
+                        learnedForEmotion.forEach((response, index) => {
+                            answerList += `  ${index + 1}. Vraag: "${response.question}"\n     Antwoord: "${response.answer}"\n`;
+                        });
+                    } else {
+                        answerList += "\nGeleerde antwoorden: Nog geen geleerde antwoorden voor deze emotie.\n";
+                    }
+                    
+                    answerList += "\n";
+                }
+                
+                // Toon in chat
+                addMessage("Hier is mijn volledige antwoordlijst:", false);
+                
+                // Verdeel lange berichten
+                const maxLength = 500;
+                for (let i = 0; i < answerList.length; i += maxLength) {
+                    const chunk = answerList.substring(i, i + maxLength);
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot-message';
+                    messageDiv.style.whiteSpace = 'pre-wrap';
+                    messageDiv.textContent = chunk;
+                    chatMessages.appendChild(messageDiv);
+                }
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Voeg bericht toe aan chat
+            function addMessage(text, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
                 messageDiv.textContent = text;
-            } else {
-                messageDiv.className = `message ${sender}-message`;
-                
-                const senderDiv = document.createElement('div');
-                senderDiv.className = 'message-sender';
-                senderDiv.textContent = sender === 'user' ? 'Jij' : botName;
-                
-                const textDiv = document.createElement('div');
-                textDiv.textContent = text;
-                
-                const timeDiv = document.createElement('div');
-                timeDiv.className = 'message-time';
-                timeDiv.textContent = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-                
-                messageDiv.appendChild(senderDiv);
-                messageDiv.appendChild(textDiv);
-                messageDiv.appendChild(timeDiv);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
             
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Verwerk gebruikersinvoer
+            function processUserInput() {
+                const text = userInput.value.trim();
+                if (text === '') return;
+                
+                addMessage(text, true);
+                userInput.value = '';
+                
+                // Simuleer denktijd
+                setTimeout(() => {
+                    const response = generateAnswer(text);
+                    addMessage(response.text, false);
+                }, 1000);
+            }
             
-            // Sla op in geschiedenis
-            conversationHistory.push({
-                sender: sender === 'user' ? 'Jij' : botName,
-                text: text,
-                timestamp: new Date().toISOString()
+            // Update diep denken status
+            function updateThinkingStatus() {
+                thinkingStatus.textContent = `Diep denken gebruikt: ${deepThinkingUsed}/${maxDeepThinking} vandaag`;
+            }
+            
+            // Schakel diep denken in/uit
+            function toggleDeepThinking() {
+                deepThinkingEnabled = !deepThinkingEnabled;
+                toggleThinking.textContent = `Diep denken: ${deepThinkingEnabled ? 'AAN' : 'UIT'}`;
+                toggleThinking.classList.toggle('off', !deepThinkingEnabled);
+                
+                if (deepThinkingEnabled) {
+                    addMessage("Diep denken modus is nu aangezet. Ik laat mijn denkproces zien.", false);
+                } else {
+                    addMessage("Diep denken modus is nu uitgezet.", false);
+                }
+            }
+            
+            // Nieuwe chat starten
+            function startNewChat() {
+                chatMessages.innerHTML = '';
+                memory = [];
+                learnedResponses = [];
+                lastResponse = '';
+                deepThinkingUsed = 0;
+                updateThinkingStatus();
+                addMessage("Hallo! Ik ben SmartBot. Ik kan emoties herkennen, vragen beantwoorden en onthoud wat je zegt om het later te gebruiken.", false);
+                menu.classList.remove('active');
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', processUserInput);
+            
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    processUserInput();
+                }
             });
-        }
-        
-        // Voeg systeembericht toe
-        function addSystemMessage(text) {
-            addMessage(text, 'system');
-        }
-        
-        // Initialiseer de chatbot
-        initializeUltimateChatbot();
+            
+            toggleThinking.addEventListener('click', toggleDeepThinking);
+            
+            menuButton.addEventListener('click', function() {
+                menu.classList.toggle('active');
+            });
+            
+            // Menu item event listeners
+            newChatBtn.addEventListener('click', startNewChat);
+            showAnswersBtn.addEventListener('click', function() {
+                showAnswerList();
+                menu.classList.remove('active');
+            });
+            
+            begroetingBtn.addEventListener('click', function() {
+                userInput.value = "Hallo! Hoe gaat het met je vandaag?";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            bozeOpmerkingBtn.addEventListener('click', function() {
+                userInput.value = "Ik ben echt boos op je! Dit is niet wat ik wilde!";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            complimentBtn.addEventListener('click', function() {
+                userInput.value = "Wat ben jij een geweldige chatbot! Je begrijpt me zo goed.";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            voorkeurBtn.addEventListener('click', function() {
+                userInput.value = "Ik hou van pizza met extra kaas.";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            meningBtn.addEventListener('click', function() {
+                userInput.value = "Ik vind dat school te veel huiswerk geeft.";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            vraagBtn.addEventListener('click', function() {
+                userInput.value = "Wat vind jij van kunstmatige intelligentie?";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            grappigBtn.addEventListener('click', function() {
+                userInput.value = "Waarom kon de computer niet naar de film? Omdat hij zijn windows moest updaten!";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            filosofischBtn.addEventListener('click', function() {
+                userInput.value = "Wat is de zin van het leven volgens jou?";
+                processUserInput();
+                menu.classList.remove('active');
+            });
+            
+            // Sluit menu als er buiten geklikt wordt
+            document.addEventListener('click', function(event) {
+                if (!menu.contains(event.target) && event.target !== menuButton) {
+                    menu.classList.remove('active');
+                }
+            });
+            
+            // Initialiseer status
+            updateThinkingStatus();
+        });
     </script>
 </body>
 </html>
