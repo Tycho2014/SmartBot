@@ -497,7 +497,7 @@
                             
                             // Voeg reden toe voor diep denken
                             if (pattern.type === 'woord') {
-                                reasoning.push(`Woord herkend voor ${emotion} (gewicht: ${pattern.gewicht})`);
+                                reasoning.push(`De gebruiker is ${emotion}. Ik probeer een passend antwoord te vinden... (gewicht: ${pattern.gewicht})`);
                             } else if (pattern.type === 'teken') {
                                 reasoning.push(`Speciaal teken herkend voor ${emotion} (gewicht: ${pattern.gewicht})`);
                             } else if (pattern.type === 'combinatie') {
