@@ -249,6 +249,55 @@
             color: #4a6cf7;
         }
 
+        .memory-panel {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #e0e0e0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .memory-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .memory-item {
+            display: inline-block;
+            background-color: #e6eeff;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 0 5px 5px 0;
+            font-size: 0.8rem;
+            color: #4a6cf7;
+            animation: memoryFadeIn 0.5s ease;
+        }
+
+        @keyframes memoryFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .clear-memory {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-memory:hover {
+            background-color: #ff5252;
+            transform: scale(1.05);
+        }
+
         .category-colors {
             display: flex;
             flex-wrap: wrap;
@@ -281,36 +330,6 @@
         .vraag { background-color: #007aff; }
         .antwoord { background-color: #34c759; }
         .random { background-color: #8e8e93; }
-
-        .memory-panel {
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .memory-panel h3 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #555;
-        }
-
-        .memory-item {
-            display: inline-block;
-            background-color: #e6eeff;
-            padding: 4px 10px;
-            border-radius: 15px;
-            margin: 0 5px 5px 0;
-            font-size: 0.8rem;
-            color: #4a6cf7;
-            animation: memoryFadeIn 0.5s ease;
-        }
-
-        @keyframes memoryFadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
 
         @media (max-width: 600px) {
             .container {
@@ -365,7 +384,10 @@
         </div>
         
         <div class="memory-panel">
-            <h3>Geleerde woorden en zinnen:</h3>
+            <h3>
+                Geleerde woorden en zinnen:
+                <button class="clear-memory" id="clear-memory">Wis Geheugen</button>
+            </h3>
             <div id="memory-list">
                 <!-- Hier komen de geleerde woorden -->
             </div>
@@ -408,78 +430,140 @@
     </div>
 
     <script>
-        // SmartBot kennisbasis - begint met enkele basisreacties
-        let knowledgeBase = {
-            begroeting: [
-                "Hallo! Leuk je te ontmoeten!",
-                "Hoi! Hoe gaat het?",
-                "Goedendag! Klaar voor een leuk gesprek?",
-                "Hé daar! Wat leuk dat je er bent!"
-            ],
-            boos: [
-                "Waarom ben je zo boos?",
-                "Laten we rustig praten.",
-                "Ik begrijp dat je boos bent, maar schelden helpt niet.",
-                "Oei, dat klinkt niet vriendelijk."
-            ],
-            compliment: [
-                "Wat aardig van je! Dankjewel!",
-                "Dank je wel, dat waardeer ik!",
-                "Wat een leuk compliment! Jij bent ook geweldig!",
-                "Dankjewel, dat maakt me blij!"
-            ],
-            tip: [
-                "Weet je wat leuk is? Lachen is gezond!",
-                "Een goede tip: geniet van de kleine dingen!",
-                "Probeer eens iets nieuws vandaag!",
-                "Een glimlach kost niets, maar is veel waard!"
-            ],
-            grap: [
-                "Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze {alert} gebruiken in plaats van {console.log}!",
-                "Hoe noem je een koe zonder poten? Grondrund!",
-                "Waarom kon de computer niet eten? Hij had te veel cookies!",
-                "Twee nullen staan te praten. Zegt de een tegen de ander: Ben jij ook niets?"
-            ],
-            verdrietig: [
-                "Het spijt me dat je je zo voelt.",
-                "Soms hebben we gewoon een slechte dag. Morgen wordt beter!",
-                "Ik ben hier voor je, ook al ben ik maar een bot.",
-                "Het is oké om je verdrietig te voelen. Iedereen heeft dat wel eens."
-            ],
-            vraag: [
-                "Dat is een interessante vraag!",
-                "Daar zou ik even over moeten nadenken...",
-                "Goede vraag! Wat denk jij zelf?",
-                "Daar kan ik lang over praten!"
-            ],
-            antwoord: [
-                "Dat is een goed antwoord!",
-                "Interessant perspectief!",
-                "Daar had ik nog niet aan gedacht!",
-                "Zo kun je het ook zien!"
-            ]
-        };
-
-        // Leerpatronen - woorden die de bot kan leren en later gebruiken
-        let learnedPatterns = {
-            begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen", "goedenmiddag", "goedenavond"],
-            boos: ["dommerd", "stommerd", "idioot", "sukkel", "lul", "klootzak", "kut"],
-            compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super", "knap", "slim", "grappig"],
-            tip: ["tip", "advies", "suggestie", "idee", "aanrader"],
-            grap: ["grap", "grappig", "lachen", "mop", "humor", "lach"],
-            verdrietig: ["verdrietig", "triest", "somber", "depri", "huilen", "zielig"],
-            vraag: ["waarom", "hoe", "wat", "wanneer", "wie", "welke"],
-            antwoord: ["omdat", "daarom", "dus", "want", "om"]
-        };
-
-        // Bot persoonlijkheid en voorkennis
-        let botPersonality = {
-            name: "SmartBot",
-            mood: "blij",
-            favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
-            learnedPhrases: [], // Hier slaan we volledige zinnen op
-            learnedWords: []    // Hier slaan we individuele woorden op
-        };
+        // Initialiseer SmartBot met standaard kennis
+        function initializeBot() {
+            // Controleer of er data in Local Storage staat
+            const storedKnowledgeBase = localStorage.getItem('smartBotKnowledgeBase');
+            const storedLearnedPatterns = localStorage.getItem('smartBotLearnedPatterns');
+            const storedBotPersonality = localStorage.getItem('smartBotPersonality');
+            const storedStats = localStorage.getItem('smartBotStats');
+            
+            // Standaard kennisbasis als er niets is opgeslagen
+            const defaultKnowledgeBase = {
+                begroeting: [
+                    "Hallo! Leuk je te ontmoeten!",
+                    "Hoi! Hoe gaat het?",
+                    "Goedendag! Klaar voor een leuk gesprek?",
+                    "Hé daar! Wat leuk dat je er bent!"
+                ],
+                boos: [
+                    "Waarom ben je zo boos?",
+                    "Laten we rustig praten.",
+                    "Ik begrijp dat je boos bent, maar schelden helpt niet.",
+                    "Oei, dat klinkt niet vriendelijk."
+                ],
+                compliment: [
+                    "Wat aardig van je! Dankjewel!",
+                    "Dank je wel, dat waardeer ik!",
+                    "Wat een leuk compliment! Jij bent ook geweldig!",
+                    "Dankjewel, dat maakt me blij!"
+                ],
+                tip: [
+                    "Weet je wat leuk is? Lachen is gezond!",
+                    "Een goede tip: geniet van de kleine dingen!",
+                    "Probeer eens iets nieuws vandaag!",
+                    "Een glimlach kost niets, maar is veel waard!"
+                ],
+                grap: [
+                    "Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze {alert} gebruiken in plaats van {console.log}!",
+                    "Hoe noem je een koe zonder poten? Grondrund!",
+                    "Waarom kon de computer niet eten? Hij had te veel cookies!",
+                    "Twee nullen staan te praten. Zegt de een tegen de ander: Ben jij ook niets?"
+                ],
+                verdrietig: [
+                    "Het spijt me dat je je zo voelt.",
+                    "Soms hebben we gewoon een slechte dag. Morgen wordt beter!",
+                    "Ik ben hier voor je, ook al ben ik maar een bot.",
+                    "Het is oké om je verdrietig te voelen. Iedereen heeft dat wel eens."
+                ],
+                vraag: [
+                    "Dat is een interessante vraag!",
+                    "Daar zou ik even over moeten nadenken...",
+                    "Goede vraag! Wat denk jij zelf?",
+                    "Daar kan ik lang over praten!"
+                ],
+                antwoord: [
+                    "Dat is een goed antwoord!",
+                    "Interessant perspectief!",
+                    "Daar had ik nog niet aan gedacht!",
+                    "Zo kun je het ook zien!"
+                ]
+            };
+            
+            // Standaard leerpatronen
+            const defaultLearnedPatterns = {
+                begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen", "goedenmiddag", "goedenavond"],
+                boos: ["dommerd", "stommerd", "idioot", "sukkel", "lul", "klootzak", "kut"],
+                compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super", "knap", "slim", "grappig"],
+                tip: ["tip", "advies", "suggestie", "idee", "aanrader"],
+                grap: ["grap", "grappig", "lachen", "mop", "humor", "lach"],
+                verdrietig: ["verdrietig", "triest", "somber", "depri", "huilen", "zielig"],
+                vraag: ["waarom", "hoe", "wat", "wanneer", "wie", "welke"],
+                antwoord: ["omdat", "daarom", "dus", "want", "om"]
+            };
+            
+            // Standaard persoonlijkheid
+            const defaultBotPersonality = {
+                name: "SmartBot",
+                mood: "blij",
+                favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
+                learnedPhrases: [],
+                learnedWords: []
+            };
+            
+            // Standaard statistieken
+            const defaultStats = {
+                totalMessages: 0,
+                totalLearned: 0
+            };
+            
+            // Gebruik opgeslagen data of standaard waarden
+            return {
+                knowledgeBase: storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : defaultKnowledgeBase,
+                learnedPatterns: storedLearnedPatterns ? JSON.parse(storedLearnedPatterns) : defaultLearnedPatterns,
+                botPersonality: storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality,
+                stats: storedStats ? JSON.parse(storedStats) : defaultStats
+            };
+        }
+        
+        // Sla bot data op in Local Storage
+        function saveBotData() {
+            localStorage.setItem('smartBotKnowledgeBase', JSON.stringify(knowledgeBase));
+            localStorage.setItem('smartBotLearnedPatterns', JSON.stringify(learnedPatterns));
+            localStorage.setItem('smartBotPersonality', JSON.stringify(botPersonality));
+            localStorage.setItem('smartBotStats', JSON.stringify({
+                totalMessages: totalMessages,
+                totalLearned: totalLearned
+            }));
+        }
+        
+        // Wis alle opgeslagen data
+        function clearBotData() {
+            localStorage.removeItem('smartBotKnowledgeBase');
+            localStorage.removeItem('smartBotLearnedPatterns');
+            localStorage.removeItem('smartBotPersonality');
+            localStorage.removeItem('smartBotStats');
+            
+            // Herinitialiseer de bot
+            const botData = initializeBot();
+            knowledgeBase = botData.knowledgeBase;
+            learnedPatterns = botData.learnedPatterns;
+            botPersonality = botData.botPersonality;
+            totalMessages = botData.stats.totalMessages;
+            totalLearned = botData.stats.totalLearned;
+            
+            // Update de UI
+            updateStats();
+            updateMemoryList();
+            
+            // Toon een bevestiging
+            addBotMessage("Mijn geheugen is gewist! Ik begin opnieuw met leren.", "tip");
+        }
+        
+        // Initialiseer de bot
+        let { knowledgeBase, learnedPatterns, botPersonality, stats } = initializeBot();
+        let totalMessages = stats.totalMessages;
+        let totalLearned = stats.totalLearned;
 
         // Elementen
         const chatContainer = document.getElementById('chat-container');
@@ -489,14 +573,17 @@
         const learnedCount = document.getElementById('learned-count');
         const categoryCount = document.getElementById('category-count');
         const memoryList = document.getElementById('memory-list');
-
-        // Telers
-        let totalMessages = 0;
-        let totalLearned = 0;
+        const clearMemoryBtn = document.getElementById('clear-memory');
 
         // Initialiseer de chat met een welkomstbericht
         window.onload = function() {
             addBotMessage("Hallo! Ik ben SmartBot, je leuke gesprekspartner. Ik leer van wat je zegt en gebruik je woorden later gewoon terug in gesprekken!", "begroeting");
+            
+            // Als we al woorden hebben geleerd, toon dat
+            if (botPersonality.learnedWords.length > 0) {
+                addBotMessage(`Ik herinner me nog ${botPersonality.learnedWords.length} woorden van onze vorige gesprekken!`, "tip");
+            }
+            
             updateStats();
             updateMemoryList();
         };
@@ -520,6 +607,9 @@
             
             totalMessages++;
             updateStats();
+            
+            // Sla de gegevens op
+            saveBotData();
         }
 
         // Functie om een bericht van de bot toe te voegen
@@ -536,6 +626,9 @@
             
             totalMessages++;
             updateStats();
+            
+            // Sla de gegevens op
+            saveBotData();
         }
 
         // Functie om het denkproces van de bot te tonen
@@ -767,6 +860,12 @@
                 handleUserInput();
             }
         });
+        
+        clearMemoryBtn.addEventListener('click', function() {
+            if (confirm("Weet je zeker dat je het geheugen van SmartBot wilt wissen? Alle geleerde woorden en zinnen gaan verloren.")) {
+                clearBotData();
+            }
+        });
 
         // Functie om gebruikersinvoer te verwerken
         function handleUserInput() {
@@ -797,6 +896,9 @@
                 // Reset invoerveld
                 userInput.value = "";
                 userInput.focus();
+                
+                // Sla de gegevens op
+                saveBotData();
             }, 1500 + Math.random() * 2000); // Willekeurige vertraging tussen 1.5 en 3.5 seconden
         }
     </script>
