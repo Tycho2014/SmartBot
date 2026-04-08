@@ -3,79 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBot - Interactieve Chatbot</title>
+    <title>SmartBot - Wereldwijde Chatbot</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
-
         .container {
             width: 100%;
-            max-width: 800px;
-            background-color: rgba(255, 255, 255, 0.9);
+            max-width: 900px;
+            background: rgba(255,255,255,0.95);
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
-            animation: fadeIn 1s ease;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .header {
-            background: linear-gradient(90deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(90deg, #667eea, #764ba2);
             color: white;
             padding: 20px;
             text-align: center;
             position: relative;
         }
-
-        .header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 5px;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        .online-status {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
         }
-
-        .header p {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
         .bot-icon {
             width: 60px;
             height: 60px;
-            background-color: white;
+            background: white;
             border-radius: 50%;
             margin: 0 auto 15px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             font-size: 1.8rem;
-            color: #4a6cf7;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            animation: pulse 2s infinite;
+            color: #667eea;
+            animation: bounce 2s infinite;
         }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes bounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
-
         .chat-container {
             height: 400px;
             overflow-y: auto;
@@ -83,38 +67,26 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background-color: #f5f7ff;
+            background: #f5f7ff;
         }
-
         .message {
             max-width: 80%;
             padding: 12px 18px;
             border-radius: 18px;
-            animation: messageSlide 0.3s ease;
             position: relative;
         }
-
-        @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .user-message {
             align-self: flex-end;
-            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border-bottom-right-radius: 5px;
-            box-shadow: 2px 2px 8px rgba(74, 108, 247, 0.3);
         }
-
         .bot-message {
             align-self: flex-start;
-            background-color: white;
-            border: 1px solid #e0e0e0;
+            background: white;
+            border: 1px solid #ddd;
             border-bottom-left-radius: 5px;
-            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
         }
-
         .category-tag {
             font-size: 0.7rem;
             position: absolute;
@@ -122,89 +94,34 @@
             padding: 2px 8px;
             border-radius: 10px;
             color: white;
-            font-weight: bold;
         }
-
-        .user-category {
-            right: 10px;
-            background-color: #ff6b6b;
-        }
-
-        .bot-category {
-            left: 10px;
-            background-color: #4a6cf7;
-        }
-
+        .user-category { right: 10px; background: #ff6b6b; }
+        .bot-category { left: 10px; background: #667eea; }
         .thinking {
             align-self: flex-start;
-            background-color: #f0f0f0;
+            background: #f0f0f0;
             padding: 10px 15px;
             border-radius: 18px;
-            border-bottom-left-radius: 5px;
             font-style: italic;
             color: #666;
             display: flex;
-            align-items: center;
             gap: 8px;
-            animation: thinkingPulse 1.5s infinite;
         }
-
-        @keyframes thinkingPulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-
-        .thinking-dots {
-            display: flex;
-            gap: 3px;
-        }
-
-        .thinking-dots span {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #666;
-            animation: dotPulse 1.5s infinite;
-        }
-
-        .thinking-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .thinking-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes dotPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.5); }
-        }
-
         .input-container {
             display: flex;
             padding: 15px;
-            background-color: white;
-            border-top: 1px solid #e0e0e0;
+            background: white;
+            border-top: 1px solid #ddd;
         }
-
         #user-input {
             flex: 1;
             padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 25px;
             outline: none;
-            font-size: 1rem;
-            transition: all 0.3s;
         }
-
-        #user-input:focus {
-            border-color: #4a6cf7;
-            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
-        }
-
         #send-btn {
-            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             border-radius: 50%;
@@ -212,695 +129,377 @@
             height: 45px;
             margin-left: 10px;
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(74, 108, 247, 0.3);
         }
-
-        #send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(74, 108, 247, 0.4);
-        }
-
-        #send-btn:active {
-            transform: scale(0.95);
-        }
-
         .stats {
             display: flex;
             justify-content: space-around;
             padding: 15px;
-            background-color: #f0f5ff;
-            border-top: 1px solid #e0e0e0;
-            font-size: 0.9rem;
-            color: #555;
+            background: #f0f5ff;
+            border-top: 1px solid #ddd;
         }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: #4a6cf7;
-        }
-
+        .stat-value { font-weight: bold; font-size: 1.2rem; color: #667eea; }
         .memory-panel {
             padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
+            background: #f9f9f9;
+            border-top: 1px solid #ddd;
             max-height: 150px;
             overflow-y: auto;
         }
-
-        .memory-panel h3 {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         .memory-item {
             display: inline-block;
-            background-color: #e6eeff;
+            background: linear-gradient(135deg, #e0e7ff, #f0e6ff);
             padding: 4px 10px;
             border-radius: 15px;
             margin: 0 5px 5px 0;
             font-size: 0.8rem;
-            color: #4a6cf7;
-            animation: memoryFadeIn 0.5s ease;
+            color: #667eea;
         }
-
-        @keyframes memoryFadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
         .clear-memory {
-            background-color: #ff6b6b;
+            background: #ff6b6b;
             color: white;
             border: none;
             border-radius: 15px;
             padding: 5px 10px;
-            font-size: 0.7rem;
             cursor: pointer;
-            transition: all 0.3s;
+            float: right;
         }
-
-        .clear-memory:hover {
-            background-color: #ff5252;
-            transform: scale(1.05);
-        }
-
         .category-colors {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             padding: 15px;
-            background-color: #f9f9f9;
-            border-top: 1px solid #e0e0e0;
+            background: #f9f9f9;
             font-size: 0.8rem;
         }
-
-        .color-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .color-box {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-        }
-
-        /* Categorie kleuren */
-        .begroeting { background-color: #4cd964; }
-        .boos { background-color: #ff3b30; }
-        .compliment { background-color: #ffcc00; }
-        .tip { background-color: #5ac8fa; }
-        .grap { background-color: #af52de; }
-        .verdrietig { background-color: #5856d6; }
-        .vraag { background-color: #007aff; }
-        .antwoord { background-color: #34c759; }
-        .random { background-color: #8e8e93; }
-
-        @media (max-width: 600px) {
-            .container {
-                border-radius: 10px;
-            }
-            
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .message {
-                max-width: 90%;
-            }
-            
-            .stats {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
+        .color-box { width: 12px; height: 12px; border-radius: 3px; }
+        .begroeting { background: #4cd964; }
+        .boos { background: #ff3b30; }
+        .compliment { background: #ffcc00; }
+        .tip { background: #5ac8fa; }
+        .grap { background: #af52de; }
+        .verdrietig { background: #5856d6; }
+        .vraag { background: #007aff; }
+        .antwoord { background: #34c759; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <div class="online-status">
+                <span id="connection-status">🌍 Verbinden...</span>
+            </div>
             <div class="bot-icon">🤖</div>
-            <h1>SmartBot</h1>
-            <p>Je leuke gesprekspartner die van je leert en je woorden terug gebruikt!</p>
+            <h1>SmartBot 🌍</h1>
+            <p>Wereldwijde chatbot - Iedereen leert samen!</p>
         </div>
         
-        <div class="chat-container" id="chat-container">
-            <!-- Hier komen de berichten -->
-        </div>
+        <div class="chat-container" id="chat-container"></div>
         
         <div class="input-container">
-            <input type="text" id="user-input" placeholder="Typ je bericht hier...">
+            <input type="text" id="user-input" placeholder="Typ je bericht... (wereldwijd gedeeld!)">
             <button id="send-btn">➤</button>
         </div>
         
         <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="message-count">0</div>
-                <div>Berichten</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="learned-count">0</div>
-                <div>Woorden geleerd</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="category-count">8</div>
-                <div>Categorieën</div>
-            </div>
+            <div class="stat-item"><div class="stat-value" id="message-count">0</div><div>Berichten</div></div>
+            <div class="stat-item"><div class="stat-value" id="learned-count">0</div><div>Woorden geleerd</div></div>
+            <div class="stat-item"><div class="stat-value" id="active-users">1</div><div>Actieve gebruikers</div></div>
         </div>
         
         <div class="memory-panel">
-            <h3>
-                Geleerde woorden en zinnen:
-                <button class="clear-memory" id="clear-memory">Wis Geheugen</button>
-            </h3>
-            <div id="memory-list">
-                <!-- Hier komen de geleerde woorden -->
-            </div>
+            <button class="clear-memory" id="clear-memory">🗑️ Wis wereldwijd geheugen</button>
+            <h3>📚 Wereldwijd geleerde woorden:</h3>
+            <div id="memory-list"><em>Laden...</em></div>
         </div>
         
         <div class="category-colors">
-            <div class="color-item">
-                <div class="color-box begroeting"></div>
-                <span>Begroeting</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box boos"></div>
-                <span>Boze opmerking</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box compliment"></div>
-                <span>Compliment</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box tip"></div>
-                <span>Tip</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box grap"></div>
-                <span>Grap/humor</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box verdrietig"></div>
-                <span>Verdrietig</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box vraag"></div>
-                <span>Vraag</span>
-            </div>
-            <div class="color-item">
-                <div class="color-box antwoord"></div>
-                <span>Antwoord</span>
-            </div>
+            <div class="color-item"><div class="color-box begroeting"></div><span>Begroeting</span></div>
+            <div class="color-item"><div class="color-box boos"></div><span>Boos</span></div>
+            <div class="color-item"><div class="color-box compliment"></div><span>Compliment</span></div>
+            <div class="color-item"><div class="color-box tip"></div><span>Tip</span></div>
+            <div class="color-item"><div class="color-box grap"></div><span>Grap</span></div>
+            <div class="color-item"><div class="color-box verdrietig"></div><span>Verdrietig</span></div>
+            <div class="color-item"><div class="color-box vraag"></div><span>Vraag</span></div>
+            <div class="color-item"><div class="color-box antwoord"></div><span>Antwoord</span></div>
         </div>
     </div>
 
     <script>
-        // Initialiseer SmartBot met standaard kennis
-        function initializeBot() {
-            // Controleer of er data in Local Storage staat
-            const storedKnowledgeBase = localStorage.getItem('smartBotKnowledgeBase');
-            const storedLearnedPatterns = localStorage.getItem('smartBotLearnedPatterns');
-            const storedBotPersonality = localStorage.getItem('smartBotPersonality');
-            const storedStats = localStorage.getItem('smartBotStats');
-            
-            // Standaard kennisbasis als er niets is opgeslagen
-            const defaultKnowledgeBase = {
-                begroeting: [
-                    "Hallo! Leuk je te ontmoeten!",
-                    "Hoi! Hoe gaat het?",
-                    "Goedendag! Klaar voor een leuk gesprek?",
-                    "Hé daar! Wat leuk dat je er bent!"
-                ],
-                boos: [
-                    "Waarom ben je zo boos?",
-                    "Laten we rustig praten.",
-                    "Ik begrijp dat je boos bent, maar schelden helpt niet.",
-                    "Oei, dat klinkt niet vriendelijk."
-                ],
-                compliment: [
-                    "Wat aardig van je! Dankjewel!",
-                    "Dank je wel, dat waardeer ik!",
-                    "Wat een leuk compliment! Jij bent ook geweldig!",
-                    "Dankjewel, dat maakt me blij!"
-                ],
-                tip: [
-                    "Weet je wat leuk is? Lachen is gezond!",
-                    "Een goede tip: geniet van de kleine dingen!",
-                    "Probeer eens iets nieuws vandaag!",
-                    "Een glimlach kost niets, maar is veel waard!"
-                ],
-                grap: [
-                    "Waarom gaan programmeurs altijd met de verkeerde voet uit bed? Omdat ze {alert} gebruiken in plaats van {console.log}!",
-                    "Hoe noem je een koe zonder poten? Grondrund!",
-                    "Waarom kon de computer niet eten? Hij had te veel cookies!",
-                    "Twee nullen staan te praten. Zegt de een tegen de ander: Ben jij ook niets?"
-                ],
-                verdrietig: [
-                    "Het spijt me dat je je zo voelt.",
-                    "Soms hebben we gewoon een slechte dag. Morgen wordt beter!",
-                    "Ik ben hier voor je, ook al ben ik maar een bot.",
-                    "Het is oké om je verdrietig te voelen. Iedereen heeft dat wel eens."
-                ],
-                vraag: [
-                    "Dat is een interessante vraag!",
-                    "Daar zou ik even over moeten nadenken...",
-                    "Goede vraag! Wat denk jij zelf?",
-                    "Daar kan ik lang over praten!"
-                ],
-                antwoord: [
-                    "Dat is een goed antwoord!",
-                    "Interessant perspectief!",
-                    "Daar had ik nog niet aan gedacht!",
-                    "Zo kun je het ook zien!"
-                ]
-            };
-            
-            // Standaard leerpatronen
-            const defaultLearnedPatterns = {
-                begroeting: ["hallo", "hoi", "hey", "goedendag", "dag", "goedemorgen", "goedenmiddag", "goedenavond"],
-                boos: ["dommerd", "stommerd", "idioot", "sukkel", "lul", "klootzak", "kut"],
-                compliment: ["mooi", "leuk", "geweldig", "fantastisch", "super", "knap", "slim", "grappig"],
-                tip: ["tip", "advies", "suggestie", "idee", "aanrader"],
-                grap: ["grap", "grappig", "lachen", "mop", "humor", "lach"],
-                verdrietig: ["verdrietig", "triest", "somber", "depri", "huilen", "zielig"],
-                vraag: ["waarom", "hoe", "wat", "wanneer", "wie", "welke"],
-                antwoord: ["omdat", "daarom", "dus", "want", "om"]
-            };
-            
-            // Standaard persoonlijkheid
-            const defaultBotPersonality = {
-                name: "SmartBot",
-                mood: "blij",
-                favoriteWords: ["leuk", "interessant", "geweldig", "grappig"],
-                learnedPhrases: [],
-                learnedWords: []
-            };
-            
-            // Standaard statistieken
-            const defaultStats = {
-                totalMessages: 0,
-                totalLearned: 0
-            };
-            
-            // Gebruik opgeslagen data of standaard waarden
-            return {
-                knowledgeBase: storedKnowledgeBase ? JSON.parse(storedKnowledgeBase) : defaultKnowledgeBase,
-                learnedPatterns: storedLearnedPatterns ? JSON.parse(storedLearnedPatterns) : defaultLearnedPatterns,
-                botPersonality: storedBotPersonality ? JSON.parse(storedBotPersonality) : defaultBotPersonality,
-                stats: storedStats ? JSON.parse(storedStats) : defaultStats
-            };
-        }
-        
-        // Sla bot data op in Local Storage
-        function saveBotData() {
-            localStorage.setItem('smartBotKnowledgeBase', JSON.stringify(knowledgeBase));
-            localStorage.setItem('smartBotLearnedPatterns', JSON.stringify(learnedPatterns));
-            localStorage.setItem('smartBotPersonality', JSON.stringify(botPersonality));
-            localStorage.setItem('smartBotStats', JSON.stringify({
-                totalMessages: totalMessages,
-                totalLearned: totalLearned
-            }));
-        }
-        
-        // Wis alle opgeslagen data
-        function clearBotData() {
-            localStorage.removeItem('smartBotKnowledgeBase');
-            localStorage.removeItem('smartBotLearnedPatterns');
-            localStorage.removeItem('smartBotPersonality');
-            localStorage.removeItem('smartBotStats');
-            
-            // Herinitialiseer de bot
-            const botData = initializeBot();
-            knowledgeBase = botData.knowledgeBase;
-            learnedPatterns = botData.learnedPatterns;
-            botPersonality = botData.botPersonality;
-            totalMessages = botData.stats.totalMessages;
-            totalLearned = botData.stats.totalLearned;
-            
-            // Update de UI
-            updateStats();
-            updateMemoryList();
-            
-            // Toon een bevestiging
-            addBotMessage("Mijn geheugen is gewist! Ik begin opnieuw met leren.", "tip");
-        }
-        
-        // Initialiseer de bot
-        let { knowledgeBase, learnedPatterns, botPersonality, stats } = initializeBot();
-        let totalMessages = stats.totalMessages;
-        let totalLearned = stats.totalLearned;
+        // ========== JOUW FIREBASE CONFIGURATIE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVSuvwfb2K9HlkgmBhX0wb6qIAh7zG6G68",
+            authDomain: "smartbot-e74c8.firebaseapp.com",
+            projectId: "smartbot-e74c8",
+            storageBucket: "smartbot-e74c8.firebasestorage.app",
+            messagingSenderId: "763220149613",
+            appId: "1:763220149613:web:ca15bf820a309ff7adc664"
+        };
+        // =================================================
 
-        // Elementen
+        // Start Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Data referenties
+        const knowledgeBaseRef = database.ref('smartbot/knowledgeBase');
+        const learnedPatternsRef = database.ref('smartbot/learnedPatterns');
+        const botPersonalityRef = database.ref('smartbot/botPersonality');
+        const statsRef = database.ref('smartbot/stats');
+        const activeUsersRef = database.ref('smartbot/activeUsers');
+        
+        // Standaard data
+        let knowledgeBase = {
+            begroeting: ["Hallo!", "Hoi!", "Goedendag!", "Hé daar!"],
+            boos: ["Waarom ben je boos?", "Laten we rustig praten.", "Dat is niet aardig."],
+            compliment: ["Dankjewel!", "Wat aardig!", "Jij bent ook geweldig!"],
+            tip: ["Lachen is gezond!", "Geniet van kleine dingen!", "Een glimlach kost niets!"],
+            grap: ["Waarom kippen? Omdat ze graag lachen!", "Wat is groen en stinkt? Een lachende kikker!"],
+            verdrietig: ["Het spijt me.", "Morgen wordt beter.", "Ik ben hier voor je."],
+            vraag: ["Goede vraag!", "Daar moet ik over nadenken...", "Wat denk jij?"],
+            antwoord: ["Interessant!", "Goed punt!", "Zo kun je het ook zien!"]
+        };
+        
+        let learnedPatterns = {
+            begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag"],
+            boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak"],
+            compliment: ["mooi","leuk","geweldig","super","knap","slim"],
+            tip: ["tip","advies","suggestie"],
+            grap: ["grap","grappig","lachen","mop","humor"],
+            verdrietig: ["verdrietig","triest","somber","depri","huilen"],
+            vraag: ["waarom","hoe","wat","wanneer","wie"],
+            antwoord: ["omdat","daarom","dus","want"]
+        };
+        
+        let botPersonality = {
+            name: "SmartBot",
+            learnedWords: [],
+            learnedPhrases: []
+        };
+        
+        let totalMessages = 0;
+        let totalLearned = 0;
+        let userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        
+        // DOM elementen
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const messageCount = document.getElementById('message-count');
         const learnedCount = document.getElementById('learned-count');
-        const categoryCount = document.getElementById('category-count');
+        const activeUsersSpan = document.getElementById('active-users');
         const memoryList = document.getElementById('memory-list');
-        const clearMemoryBtn = document.getElementById('clear-memory');
-
-        // Initialiseer de chat met een welkomstbericht
-        window.onload = function() {
-            addBotMessage("Hallo! Ik ben SmartBot, je leuke gesprekspartner. Ik leer van wat je zegt en gebruik je woorden later gewoon terug in gesprekken!", "begroeting");
-            
-            // Als we al woorden hebben geleerd, toon dat
-            if (botPersonality.learnedWords.length > 0) {
-                addBotMessage(`Ik herinner me nog ${botPersonality.learnedWords.length} woorden van onze vorige gesprekken!`, "tip");
-            }
-            
-            updateStats();
-            updateMemoryList();
-        };
-
-        // Functie om een bericht van de gebruiker toe te voegen
-        function addUserMessage(message) {
-            const category = categorizeMessage(message);
-            
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message user-message';
-            messageElement.innerHTML = `
-                <div class="category-tag user-category">${category}</div>
-                ${message}
-            `;
-            
-            chatContainer.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            // Leer van het bericht
-            learnFromMessage(message, category);
-            
-            totalMessages++;
-            updateStats();
-            
-            // Sla de gegevens op
-            saveBotData();
+        
+        // Data laden van Firebase
+        function loadData() {
+            knowledgeBaseRef.on('value', (snap) => { if(snap.exists()) knowledgeBase = snap.val(); updateStats(); });
+            learnedPatternsRef.on('value', (snap) => { if(snap.exists()) learnedPatterns = snap.val(); updateMemoryList(); });
+            botPersonalityRef.on('value', (snap) => { if(snap.exists()) botPersonality = snap.val(); updateMemoryList(); });
+            statsRef.on('value', (snap) => {
+                if(snap.exists()) {
+                    totalMessages = snap.val().totalMessages || 0;
+                    totalLearned = snap.val().totalLearned || 0;
+                    updateStats();
+                }
+            });
+            activeUsersRef.on('value', (snap) => {
+                activeUsersSpan.textContent = Object.keys(snap.val() || {}).length;
+            });
         }
-
-        // Functie om een bericht van de bot toe te voegen
-        function addBotMessage(message, category) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message bot-message';
-            messageElement.innerHTML = `
-                <div class="category-tag bot-category">${category}</div>
-                ${message}
-            `;
-            
-            chatContainer.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            totalMessages++;
-            updateStats();
-            
-            // Sla de gegevens op
-            saveBotData();
+        
+        // Data opslaan
+        function saveData() {
+            knowledgeBaseRef.set(knowledgeBase);
+            learnedPatternsRef.set(learnedPatterns);
+            botPersonalityRef.set(botPersonality);
+            statsRef.set({ totalMessages, totalLearned });
         }
-
-        // Functie om het denkproces van de bot te tonen
-        function showThinking() {
-            const thinkingElement = document.createElement('div');
-            thinkingElement.className = 'thinking';
-            thinkingElement.id = 'thinking';
-            thinkingElement.innerHTML = `
-                SmartBot denkt na
-                <div class="thinking-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            
-            chatContainer.appendChild(thinkingElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            return thinkingElement;
+        
+        // Actieve gebruiker
+        function addActiveUser() {
+            const userRef = activeUsersRef.child(userId);
+            userRef.set({ lastActive: firebase.database.ServerValue.TIMESTAMP });
+            window.addEventListener('beforeunload', () => userRef.remove());
+            setInterval(() => userRef.update({ lastActive: firebase.database.ServerValue.TIMESTAMP }), 30000);
         }
-
-        // Functie om berichten te categoriseren
-        function categorizeMessage(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            // Controleer elke categorie
-            for (const category in learnedPatterns) {
-                for (const word of learnedPatterns[category]) {
-                    if (lowerMessage.includes(word)) {
-                        return category;
-                    }
+        
+        // Bericht categoriseren
+        function categorizeMessage(msg) {
+            const lower = msg.toLowerCase();
+            for(let cat in learnedPatterns) {
+                for(let word of learnedPatterns[cat]) {
+                    if(lower.includes(word)) return cat;
                 }
             }
-            
-            // Als geen categorie gevonden, gebruik "random"
             return "random";
         }
-
-        // Functie om van een bericht te leren
-        function learnFromMessage(message, category) {
-            const words = message.toLowerCase().split(/\s+/);
-            
-            for (const word of words) {
-                // Voeg woord toe aan geleerde patronen als het niet al bestaat
-                let wordExists = false;
-                for (const cat in learnedPatterns) {
-                    if (learnedPatterns[cat].includes(word)) {
-                        wordExists = true;
-                        break;
-                    }
+        
+        // Leren van bericht
+        function learnFromMessage(msg, category) {
+            const words = msg.toLowerCase().split(/\s+/);
+            for(let word of words) {
+                let exists = false;
+                for(let cat in learnedPatterns) {
+                    if(learnedPatterns[cat].includes(word)) { exists = true; break; }
                 }
-                
-                if (!wordExists && word.length > 2 && !isCommonWord(word)) {
-                    if (!learnedPatterns[category]) {
-                        learnedPatterns[category] = [];
-                    }
+                if(!exists && word.length > 2 && !["de","het","een","en","van","voor","met","op","te","is","was","niet"].includes(word)) {
+                    if(!learnedPatterns[category]) learnedPatterns[category] = [];
                     learnedPatterns[category].push(word);
                     botPersonality.learnedWords.push(word);
                     totalLearned++;
-                    
-                    // Voeg ook een reactie toe aan de kennisbasis
-                    if (!knowledgeBase[category]) {
-                        knowledgeBase[category] = [];
-                    }
-                    
-                    // Voeg volledige zin toe aan geleerde zinnen
-                    if (!botPersonality.learnedPhrases.includes(message)) {
-                        botPersonality.learnedPhrases.push(message);
-                        knowledgeBase[category].push(message);
+                    if(!knowledgeBase[category]) knowledgeBase[category] = [];
+                    if(!botPersonality.learnedPhrases.includes(msg)) {
+                        botPersonality.learnedPhrases.push(msg);
+                        knowledgeBase[category].push(msg);
                     }
                 }
             }
-            
-            updateStats();
             updateMemoryList();
+            saveData();
         }
-
-        // Hulpfunctie om veelvoorkomende woorden te filteren
-        function isCommonWord(word) {
-            const commonWords = ["de", "het", "een", "en", "of", "maar", "dan", "om", "naar", "voor", "met", "zonder", "door", "over", "onder", "boven", "tussen", "naast", "achter", "voor", "bij", "sinds", "tot", "van", "aan", "in", "uit", "op", "te", "bij", "naar", "door", "over", "onder", "boven", "tussen", "naast", "achter", "voor", "bij", "sinds", "tot", "van", "aan", "in", "uit", "op", "te", "bij", "naar"];
-            return commonWords.includes(word.toLowerCase());
-        }
-
-        // Functie om een antwoord van de bot te genereren
-        function generateBotResponse(userMessage, userCategory) {
-            // Diep nadenken - complexe logica voor het genereren van antwoorden
+        
+        // Antwoord genereren
+        function generateResponse(msg, category) {
             let response = "";
-            let responseCategory = "antwoord";
+            let respCategory = "antwoord";
             
-            // Kans dat de bot een geleerd woord of zin gebruikt
-            const useLearnedWord = Math.random() < 0.4; // 40% kans
-            
-            if (useLearnedWord && botPersonality.learnedWords.length > 0) {
-                // Gebruik een willekeurig geleerd woord in een antwoord
+            // 40% kans om een geleerd woord te gebruiken
+            if(Math.random() < 0.4 && botPersonality.learnedWords.length > 0) {
                 const randomWord = botPersonality.learnedWords[Math.floor(Math.random() * botPersonality.learnedWords.length)];
-                
-                // Bepaal de categorie van het geleerde woord
-                let wordCategory = "antwoord";
-                for (const category in learnedPatterns) {
-                    if (learnedPatterns[category].includes(randomWord)) {
-                        wordCategory = category;
-                        break;
-                    }
-                }
-                
-                // Genereer een antwoord met het geleerde woord
-                const responses = {
-                    begroeting: [
-                        `Hallo! Jij bent ook een ${randomWord}!`,
-                        `Hé ${randomWord}! Hoe gaat het?`,
-                        `Goedendag, mijn ${randomWord}!`
-                    ],
-                    boos: [
-                        `Jij bent zelf een ${randomWord}!`,
-                        `Niet zo ${randomWord} doen!`,
-                        `Wat een ${randomWord} ben jij!`
-                    ],
-                    compliment: [
-                        `Wat ben jij een ${randomWord}!`,
-                        `Jij bent echt ${randomWord}!`,
-                        `Wow, jij bent zo ${randomWord}!`
-                    ],
-                    tip: [
-                        `Een goede tip: wees niet zo ${randomWord}!`,
-                        `Mijn tip: gebruik vaker het woord ${randomWord}!`,
-                        `Probeer eens ${randomWord}, dat is leuk!`
-                    ],
-                    grap: [
-                        `Waarom is een ${randomWord} zoals een banaan? Omdat ze allebei krom zijn!`,
-                        `Er loopt een ${randomWord} over straat. Zegt de een tegen de ander: kijk, een ${randomWord}!`
-                    ],
-                    verdrietig: [
-                        `Ik voel me zo ${randomWord} vandaag.`,
-                        `Soms ben ik gewoon ${randomWord}.`,
-                        `Het is zo ${randomWord} soms.`
-                    ],
-                    vraag: [
-                        `Waarom ben je zo ${randomWord}?`,
-                        `Hoe voel je je als ${randomWord}?`,
-                        `Wat vind je van ${randomWord}?`
-                    ],
-                    antwoord: [
-                        `Ik denk dat ${randomWord} het antwoord is!`,
-                        `Misschien is ${randomWord} de oplossing!`,
-                        `Volgens mij is het gewoon ${randomWord}.`
-                    ],
-                    random: [
-                        `Leuk woord: ${randomWord}!`,
-                        `Wist je dat ${randomWord} een interessant woord is?`,
-                        `Ik hou van het woord ${randomWord}!`
-                    ]
-                };
-                
-                if (responses[wordCategory] && responses[wordCategory].length > 0) {
-                    response = responses[wordCategory][Math.floor(Math.random() * responses[wordCategory].length)];
-                    responseCategory = wordCategory;
-                }
-            } else if (Math.random() < 0.2 && botPersonality.learnedPhrases.length > 0) {
-                // 20% kans om een volledige geleerde zin terug te gebruiken
-                const randomPhrase = botPersonality.learnedPhrases[Math.floor(Math.random() * botPersonality.learnedPhrases.length)];
-                response = randomPhrase;
-                responseCategory = categorizeMessage(randomPhrase);
-            } else {
-                // Gebruik standaard reacties
-                if (knowledgeBase[userCategory] && knowledgeBase[userCategory].length > 0) {
-                    response = knowledgeBase[userCategory][Math.floor(Math.random() * knowledgeBase[userCategory].length)];
-                    responseCategory = userCategory;
-                } else {
-                    // Fallback reacties
-                    const fallbacks = [
-                        "Interessant! Vertel me meer.",
-                        "Daar moet ik even over nadenken...",
-                        "Leuk! Wat vind je zelf?",
-                        "Dat is een goed punt!",
-                        "Hmm, ik begrijp wat je bedoelt.",
-                        "Daar kan ik me iets bij voorstellen.",
-                        "Vertel eens meer over dat onderwerp."
-                    ];
-                    response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-                    responseCategory = "antwoord";
-                }
+                const templates = [
+                    `Haha, jij bent een echte ${randomWord}!`,
+                    `Zegt degene die ${randomWord} is!`,
+                    `Nou en of, ${randomWord}!`,
+                    `Jij bent zelf ${randomWord}!`,
+                    `${randomWord}? Grappig dat je dat zegt!`,
+                    `Ik vind ${randomWord} ook een leuk woord!`
+                ];
+                response = templates[Math.floor(Math.random() * templates.length)];
+                respCategory = "random";
+            }
+            // 20% kans om een geleerde zin te herhalen
+            else if(Math.random() < 0.2 && botPersonality.learnedPhrases.length > 0) {
+                response = botPersonality.learnedPhrases[Math.floor(Math.random() * botPersonality.learnedPhrases.length)];
+                respCategory = categorizeMessage(response);
+            }
+            // Standaard antwoord
+            else if(knowledgeBase[category] && knowledgeBase[category].length > 0) {
+                response = knowledgeBase[category][Math.floor(Math.random() * knowledgeBase[category].length)];
+                respCategory = category;
+            }
+            else {
+                response = "Interessant! Vertel me meer.";
+                respCategory = "antwoord";
             }
             
-            // Soms een grap of onverwachte reactie toevoegen voor variatie
-            if (Math.random() < 0.15) { // 15% kans
-                const jokes = knowledgeBase.grap;
-                const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
-                response += " " + randomJoke;
-                responseCategory = "grap";
-            }
-            
-            return { response, category: responseCategory };
+            return { response, category: respCategory };
         }
-
-        // Functie om statistieken bij te werken
+        
+        // UI functies
+        function addUserMessage(msg) {
+            const category = categorizeMessage(msg);
+            const el = document.createElement('div');
+            el.className = 'message user-message';
+            el.innerHTML = `<div class="category-tag user-category">${category}</div>${escapeHtml(msg)}`;
+            chatContainer.appendChild(el);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            learnFromMessage(msg, category);
+            totalMessages++;
+            updateStats();
+            saveData();
+        }
+        
+        function addBotMessage(msg, category) {
+            const el = document.createElement('div');
+            el.className = 'message bot-message';
+            el.innerHTML = `<div class="category-tag bot-category">${category}</div>${escapeHtml(msg)}`;
+            chatContainer.appendChild(el);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function showThinking() {
+            const el = document.createElement('div');
+            el.className = 'thinking';
+            el.id = 'thinking';
+            el.innerHTML = '🤔 SmartBot denkt wereldwijd na...';
+            chatContainer.appendChild(el);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return el;
+        }
+        
         function updateStats() {
             messageCount.textContent = totalMessages;
             learnedCount.textContent = totalLearned;
-            
-            // Tel categorieën
-            let categories = 0;
-            for (const category in knowledgeBase) {
-                if (knowledgeBase[category].length > 0) {
-                    categories++;
-                }
-            }
-            categoryCount.textContent = categories;
         }
-
-        // Functie om de geheugenlijst bij te werken
+        
         function updateMemoryList() {
             memoryList.innerHTML = "";
-            
-            // Toon de laatste 10 geleerde woorden
-            const recentWords = botPersonality.learnedWords.slice(-10);
-            recentWords.forEach(word => {
-                const memoryItem = document.createElement('div');
-                memoryItem.className = 'memory-item';
-                memoryItem.textContent = word;
-                memoryList.appendChild(memoryItem);
+            if(botPersonality.learnedWords.length === 0) {
+                memoryList.innerHTML = "<em>Nog geen woorden geleerd. Typ iets!</em>";
+                return;
+            }
+            const words = [...botPersonality.learnedWords].reverse().slice(0, 30);
+            words.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'memory-item';
+                item.textContent = word;
+                memoryList.appendChild(item);
             });
         }
-
-        // Event listeners
-        sendBtn.addEventListener('click', handleUserInput);
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleUserInput();
-            }
-        });
         
-        clearMemoryBtn.addEventListener('click', function() {
-            if (confirm("Weet je zeker dat je het geheugen van SmartBot wilt wissen? Alle geleerde woorden en zinnen gaan verloren.")) {
-                clearBotData();
-            }
-        });
-
-        // Functie om gebruikersinvoer te verwerken
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         function handleUserInput() {
-            const message = userInput.value.trim();
-            
-            if (message === "") return;
-            
-            // Voeg gebruikersbericht toe
-            addUserMessage(message);
-            
-            // Toon denkproces
-            const thinkingElement = showThinking();
-            
-            // Genereer antwoord na een korte vertraging (voor realisme)
+            const msg = userInput.value.trim();
+            if(!msg) return;
+            addUserMessage(msg);
+            const thinking = showThinking();
             setTimeout(() => {
-                // Verwijder denkproces
-                thinkingElement.remove();
-                
-                // Categoriseer bericht
-                const category = categorizeMessage(message);
-                
-                // Genereer antwoord
-                const { response, category: responseCategory } = generateBotResponse(message, category);
-                
-                // Voeg botbericht toe
-                addBotMessage(response, responseCategory);
-                
-                // Reset invoerveld
+                thinking.remove();
+                const category = categorizeMessage(msg);
+                const { response, category: respCat } = generateResponse(msg, category);
+                addBotMessage(response, respCat);
+                saveData();
                 userInput.value = "";
                 userInput.focus();
-                
-                // Sla de gegevens op
-                saveBotData();
-            }, 1500 + Math.random() * 2000); // Willekeurige vertraging tussen 1.5 en 3.5 seconden
+            }, 1000 + Math.random() * 1500);
         }
+        
+        function clearAllData() {
+            if(confirm("⚠️ WAARSCHUWING! Dit wist ALLE geleerde woorden voor ALLE gebruikers! Weet je het zeker?")) {
+                knowledgeBaseRef.set(null);
+                learnedPatternsRef.set(null);
+                botPersonalityRef.set(null);
+                statsRef.set(null);
+                location.reload();
+            }
+        }
+        
+        // Start de app
+        window.onload = () => {
+            // Verbindingsstatus
+            database.ref('.info/connected').on('value', (snap) => {
+                document.getElementById('connection-status').innerHTML = snap.val() ? '✅ Online' : '❌ Offline';
+            });
+            
+            loadData();
+            addActiveUser();
+            
+            addBotMessage("🌍 Welkom bij de WERELDWIJDE SmartBot! Alles wat je leert, wordt gedeeld met alle gebruikers. Typ maar wat!", "begroeting");
+            
+            setTimeout(() => {
+                if(botPersonality.learnedWords.length > 0) {
+                    addBotMessage(`🌍 Er zijn al ${botPersonality.learnedWords.length} woorden wereldwijd geleerd!`, "tip");
+                }
+            }, 2000);
+        };
+        
+        sendBtn.addEventListener('click', handleUserInput);
+        userInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleUserInput(); });
+        document.getElementById('clear-memory').addEventListener('click', clearAllData);
     </script>
 </body>
 </html>
