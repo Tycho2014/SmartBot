@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartBot - Wereldwijd Leren met Voorrang</title>
+    <title>GlobalChat - Chat met Iedereen Wereldwijd</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
@@ -11,46 +11,47 @@
         
         /* Licht thema (standaard) */
         :root {
-            --bg-gradient-start: #6e8efb;
-            --bg-gradient-end: #a777e3;
-            --container-bg: rgba(255,255,255,0.95);
-            --chat-bg: #f5f7ff;
+            --container-bg: rgba(255,255,255,0.92);
+            --chat-bg: rgba(245,247,255,0.9);
             --user-msg-start: #4a6cf7;
             --user-msg-end: #7a52d4;
-            --bot-msg-bg: white;
-            --bot-msg-border: #ddd;
+            --other-msg-bg: rgba(255,255,255,0.95);
+            --other-msg-border: #ddd;
             --text-color: #333;
-            --input-bg: white;
+            --input-bg: rgba(255,255,255,0.95);
             --input-border: #ddd;
-            --stats-bg: #f0f5ff;
-            --memory-bg: #f9f9f9;
-            --thinking-bg: #f0f0f0;
-            --thinking-color: #666;
+            --sidebar-bg: #f0f5ff;
+            --online-badge: #4cd964;
+            --system-color: rgba(136,136,136,0.9);
+            --overlay-bg: rgba(0,0,0,0.5);
+            --modal-bg: white;
+            --online-users-bg: rgba(255,255,255,0.9);
         }
         
         /* Donker thema */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-gradient-start: #1a1a2e;
-                --bg-gradient-end: #16213e;
-                --container-bg: rgba(30,30,46,0.95);
-                --chat-bg: #1e1e2e;
+                --container-bg: rgba(30,30,46,0.92);
+                --chat-bg: rgba(30,30,46,0.9);
                 --user-msg-start: #4a6cf7;
                 --user-msg-end: #7a52d4;
-                --bot-msg-bg: #2d2d3f;
-                --bot-msg-border: #404055;
+                --other-msg-bg: rgba(45,45,63,0.95);
+                --other-msg-border: #404055;
                 --text-color: #e0e0e0;
-                --input-bg: #2d2d3f;
+                --input-bg: rgba(45,45,63,0.95);
                 --input-border: #404055;
-                --stats-bg: #252538;
-                --memory-bg: #252538;
-                --thinking-bg: #2d2d3f;
-                --thinking-color: #aaa;
+                --online-badge: #4cd964;
+                --system-color: rgba(170,170,170,0.9);
+                --modal-bg: #2d2d3f;
+                --online-users-bg: rgba(45,45,63,0.9);
             }
         }
         
         body { 
-            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); 
+            background-image: url('achtergrond.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh; 
             display: flex; 
             justify-content: center; 
@@ -61,11 +62,15 @@
         
         .container { 
             width: 100%; 
-            max-width: 100%; 
+            max-width: 1000px; 
+            height: 100vh;
+            max-height: 100vh;
             background: var(--container-bg); 
+            backdrop-filter: blur(10px);
             box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
             overflow: hidden; 
-            border-radius: 0; 
+            display: flex;
+            flex-direction: column;
         }
         
         .header { 
@@ -116,7 +121,7 @@
             width: 10px; 
             height: 10px; 
             border-radius: 50%; 
-            background: #4cd964; 
+            background: var(--online-badge); 
             animation: pulse 1.5s infinite; 
         }
         
@@ -135,106 +140,133 @@
             opacity: 0.9;
         }
         
-        .chat-container { 
-            height: 400px; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            background: var(--chat-bg); 
-            width: 100%; 
-        }
-        
-        .message { 
-            max-width: 80%; 
-            padding: 12px 18px; 
-            border-radius: 18px; 
-            position: relative;
-            color: var(--text-color);
-        }
-        
-        .user-message { 
-            align-self: flex-end; 
-            background: linear-gradient(135deg, var(--user-msg-start), var(--user-msg-end)); 
-            color: white; 
-            border-bottom-right-radius: 5px; 
-        }
-        
-        .bot-message { 
-            align-self: flex-start; 
-            background: var(--bot-msg-bg); 
-            border: 1px solid var(--bot-msg-border); 
-            border-bottom-left-radius: 5px; 
-        }
-        
-        .category-tag { 
-            font-size: 0.7rem; 
-            position: absolute; 
-            top: -8px; 
-            padding: 2px 8px; 
-            border-radius: 10px; 
-            color: white; 
-            font-weight: bold; 
-        }
-        
-        .user-category { 
-            right: 10px; 
-            background: #ff6b6b; 
-        }
-        
-        .bot-category { 
-            left: 10px; 
-            background: #4a6cf7; 
-        }
-        
-        /* Nieuwe type-animatie */
-        .typing-indicator {
-            align-self: flex-start;
-            background: var(--thinking-bg);
-            padding: 12px 18px;
-            border-radius: 18px;
-            border-bottom-left-radius: 5px;
+        .online-users-bar {
+            background: var(--online-users-bg);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--input-border);
             display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(5px);
         }
         
-        .typing-dots {
+        .online-users-bar h3 {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            white-space: nowrap;
+        }
+        
+        .online-users-list {
             display: flex;
-            gap: 4px;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
         }
         
-        .typing-dots span {
+        .online-user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--input-bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+        }
+        
+        .online-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--thinking-color);
-            animation: typing 1.4s infinite;
+            background: var(--online-badge);
+            display: inline-block;
+            animation: pulse 1.5s infinite;
         }
         
-        .typing-dots span:nth-child(2) {
-            animation-delay: 0.2s;
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
-        .typing-dots span:nth-child(3) {
-            animation-delay: 0.4s;
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--chat-bg);
         }
         
-        @keyframes typing {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.4;
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            position: relative;
+            color: var(--text-color);
+            word-wrap: break-word;
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px) scale(0.8);
             }
-            30% {
-                transform: translateY(-10px);
+            to {
                 opacity: 1;
+                transform: translateX(0) scale(1);
             }
         }
         
-        .typing-text {
-            color: var(--thinking-color);
-            font-style: italic;
+        .message-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--user-msg-start), var(--user-msg-end));
+            color: white;
+            border-bottom-right-radius: 5px;
+            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        .message-other {
+            align-self: flex-start;
+            background: var(--other-msg-bg);
+            border: 1px solid var(--other-msg-border);
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-system {
+            align-self: center;
+            background: var(--system-color);
+            color: white;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .message-info {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+        
+        .message-user .message-info {
+            color: rgba(255,255,255,0.8);
         }
         
         .input-container { 
@@ -244,7 +276,7 @@
             border-top: 1px solid var(--input-border); 
         }
         
-        #user-input { 
+        #message-input { 
             flex: 1; 
             padding: 12px 15px; 
             border: 1px solid var(--input-border); 
@@ -252,6 +284,11 @@
             outline: none; 
             background: var(--input-bg);
             color: var(--text-color);
+            transition: border 0.3s;
+        }
+        
+        #message-input:focus {
+            border-color: #4a6cf7;
         }
         
         #send-btn { 
@@ -263,56 +300,161 @@
             height: 45px; 
             margin-left: 10px; 
             cursor: pointer; 
+            font-size: 1.2rem;
+            transition: transform 0.2s;
         }
         
-        .stats { 
-            display: flex; 
-            justify-content: space-around; 
-            padding: 15px; 
-            background: var(--stats-bg); 
-            border-top: 1px solid var(--input-border); 
+        #send-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        #send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--other-msg-bg);
+            padding: 8px 15px;
+            border-radius: 18px;
+            font-style: italic;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            animation: fadeIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-color);
+            animation: typingBounce 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingBounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+        
+        /* Modal popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--modal-bg);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 20px;
             color: var(--text-color);
         }
         
-        .stat-value { 
-            font-weight: bold; 
-            font-size: 1.2rem; 
-            color: #4a6cf7; 
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1rem;
         }
         
-        .memory-panel { 
-            padding: 15px; 
-            background: var(--memory-bg); 
-            border-top: 1px solid var(--input-border); 
-            max-height: 150px; 
-            overflow-y: auto; 
+        .modal-content button {
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
         }
         
-        .memory-item { 
-            display: inline-block; 
-            background: #e6eeff; 
-            padding: 4px 10px; 
-            border-radius: 15px; 
-            margin: 0 5px 5px 0; 
-            font-size: 0.8rem; 
-            color: #4a6cf7; 
+        .modal-content button:hover {
+            transform: scale(1.05);
         }
         
-        .clear-memory { 
-            background: #ff6b6b; 
-            color: white; 
-            border: none; 
-            border-radius: 15px; 
-            padding: 5px 10px; 
-            cursor: pointer; 
-            float: right; 
+        .current-user {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: white;
         }
         
-        @media (max-width: 600px) { 
-            .message { max-width: 90%; } 
-            .stats { flex-direction: column; gap: 10px; } 
-            .header h1 { font-size: 1.2rem; }
-            .header p { font-size: 0.75rem; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .message {
+                max-width: 85%;
+            }
+            .online-users-list {
+                max-height: 60px;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
@@ -322,20 +464,42 @@
         <div class="header-buttons">
             <button class="disclaimer-btn" id="disclaimerBtn">⚠️ Disclaimer</button>
         </div>
-        <div class="online-status"><div class="status-dot"></div><span id="connectionLabel">Verbinden...</span></div>
-        <h1>SmartBot</h1>
-        <p>De chatbot die leert van de gebruikers</p>
+        <div class="online-status">
+            <div class="status-dot"></div>
+            <span id="connectionLabel">Verbinden...</span>
+        </div>
+        <h1>🌍 GlobalChat</h1>
+        <p>Chat met iedereen die online is</p>
+        <div class="current-user" id="currentUserDisplay"></div>
     </div>
-    <div class="chat-container" id="chat-container"></div>
-    <div class="input-container">
-        <input type="text" id="user-input" placeholder="Typ je bericht... (wereldwijd gedeeld)">
-        <button id="send-btn">➤</button>
+    
+    <div class="online-users-bar">
+        <h3>📡 Online (<span id="onlineCount">0</span>)</h3>
+        <div class="online-users-list" id="onlineUsersList">
+            <span>Laden...</span>
+        </div>
     </div>
-    <div class="stats">
-        <div class="stat-item"><div class="stat-value" id="message-count">0</div><div>Berichten</div></div>
-        <div class="stat-item"><div class="stat-value" id="learned-count">0</div><div>Woorden geleerd</div></div>
-        <div class="stat-item"><div class="stat-value" id="category-count">0</div><div>Categorieën</div></div>
-        <div class="stat-item"><div class="stat-value" id="active-users">?</div><div>Actieve gebruikers</div></div>
+    
+    <div class="chat-area">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message message-system">
+                Welkom bij GlobalChat!
+            </div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Typ je bericht..." disabled>
+            <button id="send-btn" disabled>➤</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal popup voor naam -->
+<div class="modal" id="nameModal">
+    <div class="modal-content">
+        <h2>👋 Welkom bij GlobalChat!</h2>
+        <p style="margin-bottom: 15px; color: var(--text-color);">Kies een gebruikersnaam om te beginnen</p>
+        <input type="text" id="modalUsernameInput" placeholder="Jouw gebruikersnaam" maxlength="20">
+        <button onclick="setNameFromModal()">Start Chatten →</button>
     </div>
 </div>
 
@@ -350,253 +514,318 @@
         messagingSenderId: "763220149613",
         appId: "1:763220149613:web:ca15bf820a309ff7adc664"
     };
+    
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    // Spam detectie variabelen
-    let messageHistory = [];
-    let isBlocked = false;
-    const SPAM_THRESHOLD = 5;
-    const SPAM_TIME_WINDOW = 5000;
-
+    
     // Referenties
-    const userPhrasesRef = db.ref('smartbot/userPhrases');
-    const learnedWordsRef = db.ref('smartbot/learnedWords');
-    const statsRef = db.ref('smartbot/stats');
-    const activeUsersRef = db.ref('smartbot/activeUsers');
-
-    // Globale data
-    let userPhrases = {
-        begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
-    };
-    let learnedWords = [];
-    let totalMessages = 0;
-    let totalLearned = 0;
-    const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-
+    const messagesRef = db.ref('globalchat/messages');
+    const usersRef = db.ref('globalchat/users');
+    const typingRef = db.ref('globalchat/typing');
+    
+    // Variabelen
+    let myUsername = null;
+    let myUserId = null;
+    let typingTimeout = null;
+    let isTyping = false;
+    let loadedMessages = new Set();
+    
     // DOM elementen
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
-    const messageCountSpan = document.getElementById('message-count');
-    const learnedCountSpan = document.getElementById('learned-count');
-    const categoryCountSpan = document.getElementById('category-count');
-    const activeUsersSpan = document.getElementById('active-users');
     const connectionLabel = document.getElementById('connectionLabel');
     const statusDot = document.querySelector('.status-dot');
-
-    // ========== SPAM DETECTIE ==========
-    function checkForSpam() {
-        const now = Date.now();
-        messageHistory = messageHistory.filter(timestamp => now - timestamp < SPAM_TIME_WINDOW);
+    const onlineCountSpan = document.getElementById('onlineCount');
+    const onlineUsersList = document.getElementById('onlineUsersList');
+    const currentUserDisplay = document.getElementById('currentUserDisplay');
+    const nameModal = document.getElementById('nameModal');
+    
+    // ========== LOCALSTORAGE FUNCTIES ==========
+    function loadUsernameFromStorage() {
+        const savedName = localStorage.getItem('globalchat_username');
+        const savedId = localStorage.getItem('globalchat_userid');
         
-        if (messageHistory.length >= SPAM_THRESHOLD) {
+        if (savedName && savedId) {
+            myUsername = savedName;
+            myUserId = savedId;
+            currentUserDisplay.textContent = `👤 ${myUsername}`;
+            enableChat();
+            registerUser();
+            setupTypingListener();
             return true;
         }
         return false;
     }
-
-    function addToMessageHistory() {
-        messageHistory.push(Date.now());
+    
+    function saveUsernameToStorage(username, userId) {
+        localStorage.setItem('globalchat_username', username);
+        localStorage.setItem('globalchat_userid', userId);
     }
-
-    function blockUser() {
-        isBlocked = true;
-        chatContainer.innerHTML = '';
-        const blockMsg = document.createElement('div');
-        blockMsg.className = 'message bot-message';
-        blockMsg.innerHTML = `🚫 Je bent geblokkeerd wegens spamgedrag. Je wordt doorgestuurd...`;
-        chatContainer.appendChild(blockMsg);
-        
-        userInput.disabled = true;
-        sendBtn.disabled = true;
-        
-        setTimeout(() => {
-            window.location.href = 'https://jimisdebest.github.io/rust';
-        }, 2000);
+    
+    // ========== MODAL FUNCTIES ==========
+    function showModal() {
+        nameModal.classList.add('active');
     }
-
-    // ========== CATEGORISATIE ==========
-    const categoryKeywords = {
-        begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","goedendag"],
-        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","tering"],
-        compliment: ["mooi","leuk","geweldig","fantastisch","super","knap","slim","grappig","topper"],
-        tip: ["tip","advies","suggestie","idee","aanrader","probeer","als je"],
-        grap: ["grap","grappig","lachen","mop","humor","lach","haha"],
-        verdrietig: ["verdrietig","triest","somber","depri","huilen","zielig","balen"],
-        vraag: ["waarom","hoe","wat","wanneer","wie","welke","weet je","vertel"],
-        antwoord: ["omdat","daarom","dus","want","inderdaad","precies"]
-    };
-
-    function categorizeMessage(msg) {
-        const lower = msg.toLowerCase();
-        for (let cat in categoryKeywords) {
-            for (let word of categoryKeywords[cat]) {
-                if (lower.includes(word)) return cat;
+    
+    function hideModal() {
+        nameModal.classList.remove('active');
+    }
+    
+    function setNameFromModal() {
+        const username = document.getElementById('modalUsernameInput').value.trim();
+        if (!username) {
+            alert('Voer een geldige gebruikersnaam in!');
+            return;
+        }
+        if (username.length > 20) {
+            alert('Gebruikersnaam mag maximaal 20 tekens zijn!');
+            return;
+        }
+        
+        myUsername = username;
+        myUserId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        saveUsernameToStorage(myUsername, myUserId);
+        currentUserDisplay.textContent = `👤 ${myUsername}`;
+        
+        hideModal();
+        enableChat();
+        registerUser();
+        setupTypingListener();
+        addSystemMessage(`✅ Welkom ${myUsername}! Je bent nu online.`);
+    }
+    
+    function enableChat() {
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+    }
+    
+    // ========== BERICHTEN OUDER DAN 2 DAGEN VERWIJDEREN ==========
+    function cleanOldMessages() {
+        const twoDaysAgo = Date.now() - (2 * 24 * 60 * 60 * 1000);
+        
+        messagesRef.once('value', (snapshot) => {
+            const messages = snapshot.val() || {};
+            let deletedCount = 0;
+            
+            for (const [key, message] of Object.entries(messages)) {
+                if (message.timestamp && message.timestamp < twoDaysAgo) {
+                    messagesRef.child(key).remove();
+                    deletedCount++;
+                }
             }
-        }
-        return "random";
-    }
-
-    // ========== FIREBASE SYNC ==========
-    userPhrasesRef.on('value', (snap) => {
-        if (snap.exists()) userPhrases = snap.val();
-        else {
-            userPhrasesRef.set(userPhrases);
-        }
-        let nonEmpty = Object.values(userPhrases).filter(arr => arr.length > 0).length;
-        categoryCountSpan.innerText = nonEmpty;
-    });
-    
-    learnedWordsRef.on('value', (snap) => {
-        if (snap.exists()) learnedWords = snap.val();
-        else learnedWords = [];
-        totalLearned = learnedWords.length;
-        updateStatsUI();
-    });
-    
-    statsRef.on('value', (snap) => {
-        if (snap.exists()) {
-            totalMessages = snap.val().totalMessages || 0;
-            totalLearned = snap.val().totalLearned || 0;
-        } else {
-            totalMessages = 0;
-            totalLearned = 0;
-        }
-        updateStatsUI();
-    });
-    
-    activeUsersRef.on('value', (snap) => {
-        let count = snap.exists() ? Object.keys(snap.val()).length : 0;
-        activeUsersSpan.innerText = count;
-    });
-
-    function syncUserPhrases() {
-        userPhrasesRef.set(userPhrases);
+            
+            if (deletedCount > 0) {
+                console.log(`🗑️ ${deletedCount} oude berichten verwijderd`);
+            }
+        });
     }
     
-    function syncLearnedWords() {
-        learnedWordsRef.set(learnedWords);
-        statsRef.set({ totalMessages, totalLearned });
-    }
-
-    // Actieve gebruiker
-    function registerActiveUser() {
-        const userRef = activeUsersRef.child(userId);
-        userRef.set({ lastActive: firebase.database.ServerValue.TIMESTAMP });
-        window.addEventListener('beforeunload', () => userRef.remove());
-        setInterval(() => userRef.update({ lastActive: firebase.database.ServerValue.TIMESTAMP }), 30000);
+    // ========== GEBRUIKER REGISTRATIE ==========
+    function registerUser() {
+        const userRef = usersRef.child(myUserId);
+        userRef.set({
+            username: myUsername,
+            lastSeen: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            if (myUserId) {
+                usersRef.child(myUserId).remove();
+                if (isTyping) typingRef.child(myUserId).remove();
+            }
+        });
+        
         setInterval(() => {
-            const oneMinuteAgo = Date.now() - 60000;
-            activeUsersRef.once('value', (snapshot) => {
+            if (myUserId && myUsername) {
+                usersRef.child(myUserId).update({
+                    username: myUsername,
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        }, 15000);
+    }
+    
+    // ========== BERICHTEN VERSTUREN ==========
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        if (!myUsername) return;
+        
+        const message = {
+            text: text,
+            username: myUsername,
+            timestamp: Date.now(),
+            userId: myUserId,
+            messageId: Date.now() + '_' + Math.random().toString(36).substr(2, 6)
+        };
+        
+        messagesRef.push(message);
+        messageInput.value = '';
+        stopTyping();
+        
+        // Voeg eigen bericht direct toe voor snellere feedback
+        addMessage(text, true, myUsername);
+    }
+    
+    // ========== BERICHTEN ONTVANGEN ==========
+    function setupMessageListener() {
+        messagesRef.limitToLast(100).on('child_added', (snapshot) => {
+            const message = snapshot.val();
+            const messageKey = snapshot.key;
+            
+            if (loadedMessages.has(messageKey)) return;
+            loadedMessages.add(messageKey);
+            
+            // Alleen toevoegen als het niet van onszelf is (eigen bericht is al toegevoegd)
+            if (message.userId !== myUserId) {
+                addMessage(message.text, false, message.username);
+            }
+        });
+    }
+    
+    // ========== ONLINE GEBRUIKERS ==========
+    function setupUserListener() {
+        usersRef.on('value', (snapshot) => {
+            const users = snapshot.val() || {};
+            const now = Date.now();
+            const onlineUsers = [];
+            
+            for (const [id, data] of Object.entries(users)) {
+                const lastSeen = data.lastSeen;
+                const isOnline = lastSeen && (now - lastSeen < 30000);
+                
+                if (isOnline && id !== myUserId) {
+                    onlineUsers.push(data.username);
+                }
+            }
+            
+            onlineCountSpan.textContent = onlineUsers.length;
+            
+            if (onlineUsers.length === 0) {
+                onlineUsersList.innerHTML = '<span style="opacity:0.6;">Geen andere gebruikers online</span>';
+            } else {
+                onlineUsersList.innerHTML = onlineUsers.map(username => `
+                    <span class="online-user-badge">
+                        <span class="online-dot"></span>
+                        ${escapeHtml(username)}
+                    </span>
+                `).join('');
+            }
+        });
+        
+        setInterval(() => {
+            const cutoff = Date.now() - 30000;
+            usersRef.once('value', (snapshot) => {
                 const users = snapshot.val() || {};
                 for (const [id, data] of Object.entries(users)) {
-                    if (data.lastActive && data.lastActive < oneMinuteAgo) activeUsersRef.child(id).remove();
+                    if (data.lastSeen && data.lastSeen < cutoff) {
+                        usersRef.child(id).remove();
+                    }
                 }
             });
-        }, 60000);
+        }, 10000);
     }
-
-    // ========== LEREN ==========
-    function isCommonWord(word) {
-        const common = ["de","het","een","en","of","maar","dan","om","naar","voor","met","zonder","door","over","onder","boven","tussen","naast","achter","bij","sinds","tot","van","aan","in","uit","op","te","is","was","zijn","niet","geen","ze","we","je","jij","u","hij","zij","het","mijn","jouw","zijn","haar","ons","jullie","hun","die","dat","deze","die","wat","wie","waar","daar","hier"];
-        return common.includes(word.toLowerCase());
-    }
-
-    function learnFromMessage(msg, category) {
-        if (!userPhrases[category]) userPhrases[category] = [];
-        if (!userPhrases[category].includes(msg)) {
-            userPhrases[category].push(msg);
-            syncUserPhrases();
-        }
-
-        const words = msg.toLowerCase().split(/\s+/);
-        let newWords = 0;
-        for (let w of words) {
-            if (w.length > 2 && !isCommonWord(w)) {
-                const exists = learnedWords.some(item => item.word === w);
-                if (!exists) {
-                    learnedWords.push({ word: w, category: category });
-                    newWords++;
+    
+    // ========== TYPING INDICATOR ==========
+    function setupTypingListener() {
+        typingRef.on('value', (snapshot) => {
+            const typingData = snapshot.val() || {};
+            let typingUsers = [];
+            
+            for (const [id, data] of Object.entries(typingData)) {
+                if (id !== myUserId && data.isTyping && (Date.now() - data.timestamp < 3000)) {
+                    typingUsers.push(data.username);
                 }
             }
-        }
-        if (newWords > 0) {
-            totalLearned += newWords;
-            syncLearnedWords();
-        }
-        updateStatsUI();
+            
+            const oldIndicator = document.getElementById('global-typing-indicator');
+            if (oldIndicator) oldIndicator.remove();
+            
+            if (typingUsers.length > 0) {
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'global-typing-indicator';
+                typingDiv.className = 'typing-indicator';
+                
+                let typingText = '';
+                if (typingUsers.length === 1) {
+                    typingText = `${escapeHtml(typingUsers[0])} is aan het typen`;
+                } else if (typingUsers.length === 2) {
+                    typingText = `${escapeHtml(typingUsers[0])} en ${escapeHtml(typingUsers[1])} zijn aan het typen`;
+                } else {
+                    typingText = `Meerdere mensen zijn aan het typen`;
+                }
+                
+                typingDiv.innerHTML = `
+                    <span>✏️ ${typingText}</span>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                `;
+                
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
     }
-
-    // ========== ANTWOORD GENEREREN ==========
-    function generateReply(userMessage, category) {
-        const phrasesForCat = userPhrases[category] || [];
-        if (phrasesForCat.length > 0 && Math.random() < 0.8) {
-            const randomPhrase = phrasesForCat[Math.floor(Math.random() * phrasesForCat.length)];
-            return randomPhrase;
+    
+    function startTyping() {
+        if (!myUserId || !myUsername) return;
+        
+        if (!isTyping) {
+            isTyping = true;
+            typingRef.child(myUserId).set({
+                username: myUsername,
+                isTyping: true,
+                timestamp: Date.now()
+            });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                stopTyping();
+            }, 2000);
         }
-        if (learnedWords.length > 0 && Math.random() < 0.6) {
-            const randomEntry = learnedWords[Math.floor(Math.random() * learnedWords.length)];
-            const randomWord = randomEntry.word;
-            const templates = {
-                begroeting: [`Hallo! Jij bent ook een ${randomWord}!`, `Hé ${randomWord}, hoe gaat het?`, `Goedendag, mijn ${randomWord}!`],
-                boos: [`Jij bent zelf een ${randomWord}!`, `Niet zo ${randomWord} doen!`, `Wat een ${randomWord} ben jij!`],
-                compliment: [`Wat ben jij een ${randomWord}!`, `Jij bent echt ${randomWord}!`, `Wow, jij bent zo ${randomWord}!`],
-                tip: [`Een goede tip: wees niet zo ${randomWord}!`, `Mijn tip: gebruik vaker het woord ${randomWord}!`, `Probeer eens ${randomWord}, dat is leuk!`],
-                grap: [`Waarom is een ${randomWord} zoals een banaan? Omdat ze allebei krom zijn!`, `Er loopt een ${randomWord} over straat. Zegt de een tegen de ander: kijk, een ${randomWord}!`],
-                verdrietig: [`Ik voel me zo ${randomWord} vandaag.`, `Soms ben ik gewoon ${randomWord}.`, `Het is zo ${randomWord} soms.`],
-                vraag: [`Waarom ben je zo ${randomWord}?`, `Hoe voel je je als ${randomWord}?`, `Wat vind je van ${randomWord}?`],
-                antwoord: [`Ik denk dat ${randomWord} het antwoord is!`, `Misschien is ${randomWord} de oplossing!`, `Volgens mij is het gewoon ${randomWord}.`],
-                random: [`Leuk woord: ${randomWord}!`, `Wist je dat ${randomWord} een interessant woord is?`, `Ik hou van het woord ${randomWord}!`]
-            };
-            const catTemplates = templates[category] || templates.random;
-            return catTemplates[Math.floor(Math.random() * catTemplates.length)];
-        }
-        const fallbacks = [
-            "Interessant! Vertel me meer.",
-            "Daar moet ik even over nadenken...",
-            "Leuk! Wat vind je zelf?",
-            "Dat is een goed punt!",
-            "Hmm, ik begrijp wat je bedoelt.",
-            "Vertel eens meer over dat onderwerp.",
-            "Ik leer nog, maar dit klinkt goed!",
-            "Kun je dat uitleggen?"
-        ];
-        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
     }
-
+    
+    function stopTyping() {
+        if (myUserId && isTyping) {
+            typingRef.child(myUserId).remove();
+            isTyping = false;
+        }
+    }
+    
     // ========== UI FUNCTIES ==========
-    function addUserMessage(text, category) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message user-message';
-        msgDiv.innerHTML = `<div class="category-tag user-category">${category}</div>${escapeHtml(text)}`;
-        chatContainer.appendChild(msgDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+    function addMessage(text, isOwnMessage, username) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isOwnMessage ? 'message-user' : 'message-other'}`;
+        
+        const infoSpan = document.createElement('div');
+        infoSpan.className = 'message-info';
+        infoSpan.textContent = isOwnMessage ? `${username} (jij)` : username;
+        
+        const textSpan = document.createElement('div');
+        textSpan.textContent = text;
+        
+        messageDiv.appendChild(infoSpan);
+        messageDiv.appendChild(textSpan);
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
-    function addBotMessage(text, category = "antwoord") {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message bot-message';
-        msgDiv.innerHTML = `<div class="category-tag bot-category">${category}</div>${escapeHtml(text)}`;
-        chatContainer.appendChild(msgDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-    
-    function showTypingIndicator() {
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-indicator';
-        typingDiv.id = 'temp-typing';
-        typingDiv.innerHTML = `
-            <span class="typing-text">SmartBot typt</span>
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
-        chatContainer.appendChild(typingDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        return typingDiv;
+    function addSystemMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message message-system';
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        setTimeout(() => {
+            if (messageDiv.remove) messageDiv.remove();
+        }, 5000);
     }
     
     function escapeHtml(str) {
@@ -605,76 +834,76 @@
         return div.innerHTML;
     }
     
-    function updateStatsUI() {
-        messageCountSpan.innerText = totalMessages;
-        learnedCountSpan.innerText = totalLearned;
-    }
-
-    // ========== BERICHTVERWERKING ==========
-    async function handleUserInput() {
-        if (isBlocked) return;
-        
-        const message = userInput.value.trim();
-        if (message === "") return;
-        
-        addToMessageHistory();
-        if (checkForSpam()) {
-            blockUser();
-            return;
-        }
-        
-        const category = categorizeMessage(message);
-        addUserMessage(message, category);
-        userInput.value = "";
-        
-        learnFromMessage(message, category);
-        totalMessages++;
-        updateStatsUI();
-        syncLearnedWords();
-        
-        const typingIndicator = showTypingIndicator();
-        
-        setTimeout(() => {
-            if (typingIndicator && typingIndicator.remove) typingIndicator.remove();
-            if (!isBlocked) {
-                const reply = generateReply(message, category);
-                addBotMessage(reply, category);
-                statsRef.set({ totalMessages, totalLearned: learnedWords.length });
-            }
-        }, 1000 + Math.random() * 1000);
-    }
-
-    // ========== DISCLAIMER FUNCTIE ==========
-    function showDisclaimer() {
-        window.open('disclaimer.txt', '_blank');
-    }
-
-    // ========== START ==========
-    window.onload = () => {
-        registerActiveUser();
-        
-        const disclaimerBtn = document.getElementById('disclaimerBtn');
-        if (disclaimerBtn) {
-            disclaimerBtn.addEventListener('click', showDisclaimer);
-        }
-        
+    // ========== VERBINDINGSSTATUS ==========
+    function setupConnectionStatus() {
         const connectedRef = db.ref('.info/connected');
         connectedRef.on('value', (snap) => {
             if (snap.val()) {
-                connectionLabel.innerHTML = '✅ Online (wereldwijd)';
+                connectionLabel.innerHTML = '✅ Online';
                 if (statusDot) statusDot.style.backgroundColor = '#4cd964';
-                addBotMessage("🌍 Verbonden met wereldwijde database! Alle gebruikers delen hun zinnen.", "begroeting");
+                if (myUsername) {
+                    addSystemMessage('🌍 Verbonden met wereldwijde chat!');
+                    registerUser();
+                }
             } else {
-                connectionLabel.innerHTML = '❌ Offline - alleen lokaal';
+                connectionLabel.innerHTML = '❌ Offline';
                 if (statusDot) statusDot.style.backgroundColor = '#ff3b30';
-                addBotMessage("⚠️ Geen verbinding met Firebase. Je berichten worden niet wereldwijd gedeeld.", "tip");
+                addSystemMessage('⚠️ Geen verbinding. Berichten worden niet verzonden.');
+            }
+        });
+    }
+    
+    // ========== DISCLAIMER ==========
+    function showDisclaimer() {
+        window.open('disclaimer.txt', '_blank');
+    }
+    
+    // ========== INITIALISATIE ==========
+    function init() {
+        setupConnectionStatus();
+        setupUserListener();
+        setupMessageListener();
+        
+        // Oude berichten opschonen (elke dag)
+        cleanOldMessages();
+        setInterval(cleanOldMessages, 24 * 60 * 60 * 1000);
+        
+        messageInput.addEventListener('input', () => {
+            if (myUsername && messageInput.value.trim().length > 0) {
+                startTyping();
+            } else {
+                stopTyping();
             }
         });
         
-        sendBtn.addEventListener('click', handleUserInput);
-        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUserInput(); });
-        addBotMessage("Hallo! Ik ben SmartBot. Ik geef voorrang aan wat gebruikers eerder zeiden. Typ maar iets!", "begroeting");
-    };
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && messageInput.value.trim() && myUsername) {
+                sendMessage();
+            }
+        });
+        
+        sendBtn.addEventListener('click', () => {
+            if (messageInput.value.trim() && myUsername) {
+                sendMessage();
+            }
+        });
+        
+        document.getElementById('disclaimerBtn').addEventListener('click', showDisclaimer);
+        
+        // Check of er een naam is opgeslagen
+        const hasName = loadUsernameFromStorage();
+        if (!hasName) {
+            showModal();
+        } else {
+            enableChat();
+            registerUser();
+            setupTypingListener();
+            addSystemMessage(`👋 Welkom terug ${myUsername}!`);
+        }
+    }
+    
+    // Start alles
+    init();
 </script>
 </body>
 </html>
