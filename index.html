@@ -8,47 +8,328 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: linear-gradient(135deg, #6e8efb, #a777e3); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 0; margin: 0; }
-        .container { width: 100%; max-width: 100%; background: rgba(255,255,255,0.95); box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; border-radius: 0; }
-        .header { background: linear-gradient(90deg, #4a6cf7, #7a52d4); color: white; padding: 20px; text-align: center; position: relative; }
-        .online-status { position: absolute; top: 10px; right: 20px; background: rgba(0,0,0,0.4); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #4cd964; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
-        .bot-icon { width: 60px; height: 60px; background: white; border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #4a6cf7; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: bounce 2s infinite; }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .chat-container { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #f5f7ff; width: 100%; }
-        .message { max-width: 80%; padding: 12px 18px; border-radius: 18px; position: relative; }
-        .user-message { align-self: flex-end; background: linear-gradient(135deg, #4a6cf7, #7a52d4); color: white; border-bottom-right-radius: 5px; }
-        .bot-message { align-self: flex-start; background: white; border: 1px solid #ddd; border-bottom-left-radius: 5px; }
-        .category-tag { font-size: 0.7rem; position: absolute; top: -8px; padding: 2px 8px; border-radius: 10px; color: white; font-weight: bold; }
-        .user-category { right: 10px; background: #ff6b6b; }
-        .bot-category { left: 10px; background: #4a6cf7; }
-        .thinking { align-self: flex-start; background: #f0f0f0; padding: 10px 15px; border-radius: 18px; font-style: italic; color: #666; display: flex; gap: 8px; animation: pulse 1.5s infinite; }
-        .input-container { display: flex; padding: 15px; background: white; border-top: 1px solid #ddd; }
-        #user-input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
-        #send-btn { background: linear-gradient(135deg, #4a6cf7, #7a52d4); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; margin-left: 10px; cursor: pointer; }
-        .stats { display: flex; justify-content: space-around; padding: 15px; background: #f0f5ff; border-top: 1px solid #ddd; }
-        .stat-value { font-weight: bold; font-size: 1.2rem; color: #4a6cf7; }
-        .memory-panel { padding: 15px; background: #f9f9f9; border-top: 1px solid #ddd; max-height: 150px; overflow-y: auto; }
-        .memory-item { display: inline-block; background: #e6eeff; padding: 4px 10px; border-radius: 15px; margin: 0 5px 5px 0; font-size: 0.8rem; color: #4a6cf7; }
-        .clear-memory { background: #ff6b6b; color: white; border: none; border-radius: 15px; padding: 5px 10px; cursor: pointer; float: right; }
-        .category-colors { display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; background: #f9f9f9; font-size: 0.8rem; }
-        .color-box { width: 12px; height: 12px; border-radius: 3px; }
-        .begroeting { background: #4cd964; }
-        .boos { background: #ff3b30; }
-        .compliment { background: #ffcc00; }
-        .tip { background: #5ac8fa; }
-        .grap { background: #af52de; }
-        .verdrietig { background: #5856d6; }
-        .vraag { background: #007aff; }
-        .antwoord { background: #34c759; }
-        .random { background: #8e8e93; }
-        @media (max-width: 600px) { .message { max-width: 90%; } .stats { flex-direction: column; gap: 10px; } }
+        
+        /* Licht thema (standaard) */
+        :root {
+            --bg-gradient-start: #6e8efb;
+            --bg-gradient-end: #a777e3;
+            --container-bg: rgba(255,255,255,0.95);
+            --chat-bg: #f5f7ff;
+            --user-msg-start: #4a6cf7;
+            --user-msg-end: #7a52d4;
+            --bot-msg-bg: white;
+            --bot-msg-border: #ddd;
+            --text-color: #333;
+            --input-bg: white;
+            --input-border: #ddd;
+            --stats-bg: #f0f5ff;
+            --memory-bg: #f9f9f9;
+            --thinking-bg: #f0f0f0;
+            --thinking-color: #666;
+        }
+        
+        /* Donker thema */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient-start: #1a1a2e;
+                --bg-gradient-end: #16213e;
+                --container-bg: rgba(30,30,46,0.95);
+                --chat-bg: #1e1e2e;
+                --user-msg-start: #4a6cf7;
+                --user-msg-end: #7a52d4;
+                --bot-msg-bg: #2d2d3f;
+                --bot-msg-border: #404055;
+                --text-color: #e0e0e0;
+                --input-bg: #2d2d3f;
+                --input-border: #404055;
+                --stats-bg: #252538;
+                --memory-bg: #252538;
+                --thinking-bg: #2d2d3f;
+                --thinking-color: #aaa;
+            }
+        }
+        
+        body { 
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 0; 
+            margin: 0; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 100%; 
+            background: var(--container-bg); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            overflow: hidden; 
+            border-radius: 0; 
+        }
+        
+        .header { 
+            background: linear-gradient(90deg, #4a6cf7, #7a52d4); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            position: relative; 
+        }
+        
+        .header-buttons {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .disclaimer-btn {
+            background: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .disclaimer-btn:hover {
+            background: rgba(0,0,0,0.6);
+        }
+        
+        .online-status { 
+            position: absolute; 
+            top: 10px; 
+            right: 20px; 
+            background: rgba(0,0,0,0.4); 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        
+        .status-dot { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: #4cd964; 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        @keyframes pulse { 
+            0% { opacity: 0.4; transform: scale(0.8); } 
+            100% { opacity: 1; transform: scale(1.2); } 
+        }
+        
+        .bot-icon { 
+            width: 60px; 
+            height: 60px; 
+            background: white; 
+            border-radius: 50%; 
+            margin: 0 auto 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.8rem; 
+            color: #4a6cf7; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+            animation: bounce 2s infinite; 
+        }
+        
+        @keyframes bounce { 
+            0%,100% { transform: translateY(0); } 
+            50% { transform: translateY(-5px); } 
+        }
+        
+        .chat-container { 
+            height: 400px; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background: var(--chat-bg); 
+            width: 100%; 
+        }
+        
+        .message { 
+            max-width: 80%; 
+            padding: 12px 18px; 
+            border-radius: 18px; 
+            position: relative;
+            color: var(--text-color);
+        }
+        
+        .user-message { 
+            align-self: flex-end; 
+            background: linear-gradient(135deg, var(--user-msg-start), var(--user-msg-end)); 
+            color: white; 
+            border-bottom-right-radius: 5px; 
+        }
+        
+        .bot-message { 
+            align-self: flex-start; 
+            background: var(--bot-msg-bg); 
+            border: 1px solid var(--bot-msg-border); 
+            border-bottom-left-radius: 5px; 
+        }
+        
+        .category-tag { 
+            font-size: 0.7rem; 
+            position: absolute; 
+            top: -8px; 
+            padding: 2px 8px; 
+            border-radius: 10px; 
+            color: white; 
+            font-weight: bold; 
+        }
+        
+        .user-category { 
+            right: 10px; 
+            background: #ff6b6b; 
+        }
+        
+        .bot-category { 
+            left: 10px; 
+            background: #4a6cf7; 
+        }
+        
+        /* Nieuwe type-animatie */
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--thinking-bg);
+            padding: 12px 18px;
+            border-radius: 18px;
+            border-bottom-left-radius: 5px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--thinking-color);
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+        
+        .typing-text {
+            color: var(--thinking-color);
+            font-style: italic;
+        }
+        
+        .input-container { 
+            display: flex; 
+            padding: 15px; 
+            background: var(--input-bg); 
+            border-top: 1px solid var(--input-border); 
+        }
+        
+        #user-input { 
+            flex: 1; 
+            padding: 12px 15px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 25px; 
+            outline: none; 
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        #send-btn { 
+            background: linear-gradient(135deg, #4a6cf7, #7a52d4); 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
+            margin-left: 10px; 
+            cursor: pointer; 
+        }
+        
+        .stats { 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 15px; 
+            background: var(--stats-bg); 
+            border-top: 1px solid var(--input-border); 
+            color: var(--text-color);
+        }
+        
+        .stat-value { 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            color: #4a6cf7; 
+        }
+        
+        .memory-panel { 
+            padding: 15px; 
+            background: var(--memory-bg); 
+            border-top: 1px solid var(--input-border); 
+            max-height: 150px; 
+            overflow-y: auto; 
+        }
+        
+        .memory-item { 
+            display: inline-block; 
+            background: #e6eeff; 
+            padding: 4px 10px; 
+            border-radius: 15px; 
+            margin: 0 5px 5px 0; 
+            font-size: 0.8rem; 
+            color: #4a6cf7; 
+        }
+        
+        .clear-memory { 
+            background: #ff6b6b; 
+            color: white; 
+            border: none; 
+            border-radius: 15px; 
+            padding: 5px 10px; 
+            cursor: pointer; 
+            float: right; 
+        }
+        
+        @media (max-width: 600px) { 
+            .message { max-width: 90%; } 
+            .stats { flex-direction: column; gap: 10px; } 
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
+        <div class="header-buttons">
+            <button class="disclaimer-btn" id="disclaimerBtn">⚠️ Disclaimer</button>
+        </div>
         <div class="online-status"><div class="status-dot"></div><span id="connectionLabel">Verbinden...</span></div>
         <div class="bot-icon">🤖</div>
         <h1>SmartBot</h1>
@@ -64,17 +345,6 @@
         <div class="stat-item"><div class="stat-value" id="learned-count">0</div><div>Woorden geleerd</div></div>
         <div class="stat-item"><div class="stat-value" id="category-count">0</div><div>Categorieën</div></div>
         <div class="stat-item"><div class="stat-value" id="active-users">?</div><div>Actieve gebruikers</div></div>
-    </div>
-    
-    <div class="category-colors">
-        <div class="color-item"><div class="color-box begroeting"></div><span>Begroeting</span></div>
-        <div class="color-item"><div class="color-box boos"></div><span>Boos</span></div>
-        <div class="color-item"><div class="color-box compliment"></div><span>Compliment</span></div>
-        <div class="color-item"><div class="color-box tip"></div><span>Tip</span></div>
-        <div class="color-item"><div class="color-box grap"></div><span>Grap/humor</span></div>
-        <div class="color-item"><div class="color-box verdrietig"></div><span>Verdrietig</span></div>
-        <div class="color-item"><div class="color-box vraag"></div><span>Vraag</span></div>
-        <div class="color-item"><div class="color-box antwoord"></div><span>Antwoord</span></div>
     </div>
 </div>
 
@@ -92,25 +362,23 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Referenties: per categorie opslaan van gebruikerszinnen en woorden
-    const userPhrasesRef = db.ref('smartbot/userPhrases');   // { categorie: [ "zin1", "zin2" ] }
-    const learnedWordsRef = db.ref('smartbot/learnedWords'); // array van woorden per categorie? we houden simpel: alle woorden in een array met categorie
+    // Spam detectie variabelen
+    let messageHistory = [];
+    let isBlocked = false;
+    const SPAM_THRESHOLD = 5; // 5 berichten in korte tijd
+    const SPAM_TIME_WINDOW = 5000; // 5 seconden
+
+    // Referenties
+    const userPhrasesRef = db.ref('smartbot/userPhrases');
+    const learnedWordsRef = db.ref('smartbot/learnedWords');
     const statsRef = db.ref('smartbot/stats');
     const activeUsersRef = db.ref('smartbot/activeUsers');
 
     // Globale data
-    let userPhrases = {       // voor elke categorie een array van zinnen die gebruikers hebben gestuurd
-        begroeting: [],
-        boos: [],
-        compliment: [],
-        tip: [],
-        grap: [],
-        verdrietig: [],
-        vraag: [],
-        antwoord: [],
-        random: []
+    let userPhrases = {
+        begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
     };
-    let learnedWords = [];    // elk element: { word: "woord", category: "categorie" }
+    let learnedWords = [];
     let totalMessages = 0;
     let totalLearned = 0;
     const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
@@ -123,12 +391,45 @@
     const learnedCountSpan = document.getElementById('learned-count');
     const categoryCountSpan = document.getElementById('category-count');
     const activeUsersSpan = document.getElementById('active-users');
-    const memoryListDiv = document.getElementById('memory-list');
-    const clearMemoryBtn = document.getElementById('clear-memory');
     const connectionLabel = document.getElementById('connectionLabel');
     const statusDot = document.querySelector('.status-dot');
 
-    // ========== BASIS CATEGORISATIE (met trefwoorden) ==========
+    // ========== SPAM DETECTIE ==========
+    function checkForSpam() {
+        const now = Date.now();
+        messageHistory = messageHistory.filter(timestamp => now - timestamp < SPAM_TIME_WINDOW);
+        
+        if (messageHistory.length >= SPAM_THRESHOLD) {
+            return true;
+        }
+        return false;
+    }
+
+    function addToMessageHistory() {
+        messageHistory.push(Date.now());
+    }
+
+    function blockUser() {
+        isBlocked = true;
+        // Clear de chat
+        chatContainer.innerHTML = '';
+        // Voeg een bericht toe dat de chatbot is geblokkeerd
+        const blockMsg = document.createElement('div');
+        blockMsg.className = 'message bot-message';
+        blockMsg.innerHTML = `🚫 Je bent geblokkeerd wegens spamgedrag. Je wordt doorgestuurd...`;
+        chatContainer.appendChild(blockMsg);
+        
+        // Verwijder input en send button
+        userInput.disabled = true;
+        sendBtn.disabled = true;
+        
+        // Doorsturen na 2 seconden
+        setTimeout(() => {
+            window.location.href = 'https://jimisdebest.github.io/rust';
+        }, 2000);
+    }
+
+    // ========== CATEGORISATIE ==========
     const categoryKeywords = {
         begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","goedendag"],
         boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","tering"],
@@ -154,22 +455,19 @@
     userPhrasesRef.on('value', (snap) => {
         if (snap.exists()) userPhrases = snap.val();
         else {
-            userPhrases = {
-                begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
-            };
             userPhrasesRef.set(userPhrases);
         }
-        // Update categorieën teller (aantal categorieën met minstens 1 zin)
         let nonEmpty = Object.values(userPhrases).filter(arr => arr.length > 0).length;
         categoryCountSpan.innerText = nonEmpty;
     });
+    
     learnedWordsRef.on('value', (snap) => {
         if (snap.exists()) learnedWords = snap.val();
         else learnedWords = [];
         totalLearned = learnedWords.length;
         updateStatsUI();
-        updateMemoryUI();
     });
+    
     statsRef.on('value', (snap) => {
         if (snap.exists()) {
             totalMessages = snap.val().totalMessages || 0;
@@ -180,6 +478,7 @@
         }
         updateStatsUI();
     });
+    
     activeUsersRef.on('value', (snap) => {
         let count = snap.exists() ? Object.keys(snap.val()).length : 0;
         activeUsersSpan.innerText = count;
@@ -188,6 +487,7 @@
     function syncUserPhrases() {
         userPhrasesRef.set(userPhrases);
     }
+    
     function syncLearnedWords() {
         learnedWordsRef.set(learnedWords);
         statsRef.set({ totalMessages, totalLearned });
@@ -210,26 +510,23 @@
         }, 60000);
     }
 
-    // ========== LEREN VAN EEN BERICHT ==========
+    // ========== LEREN ==========
     function isCommonWord(word) {
         const common = ["de","het","een","en","of","maar","dan","om","naar","voor","met","zonder","door","over","onder","boven","tussen","naast","achter","bij","sinds","tot","van","aan","in","uit","op","te","is","was","zijn","niet","geen","ze","we","je","jij","u","hij","zij","het","mijn","jouw","zijn","haar","ons","jullie","hun","die","dat","deze","die","wat","wie","waar","daar","hier"];
         return common.includes(word.toLowerCase());
     }
 
     function learnFromMessage(msg, category) {
-        // 1. Sla de hele gebruikerszin op in de juiste categorie (als die nog niet bestaat)
         if (!userPhrases[category]) userPhrases[category] = [];
         if (!userPhrases[category].includes(msg)) {
             userPhrases[category].push(msg);
             syncUserPhrases();
         }
 
-        // 2. Leer nieuwe woorden uit de zin (exclusief veelvoorkomende woorden)
         const words = msg.toLowerCase().split(/\s+/);
         let newWords = 0;
         for (let w of words) {
             if (w.length > 2 && !isCommonWord(w)) {
-                // Check of dit woord al in learnedWords zit (ongeacht categorie)
                 const exists = learnedWords.some(item => item.word === w);
                 if (!exists) {
                     learnedWords.push({ word: w, category: category });
@@ -241,24 +538,19 @@
             totalLearned += newWords;
             syncLearnedWords();
         }
-        updateMemoryUI();
         updateStatsUI();
     }
 
-    // ========== ANTWOORD GENEREREN MET VOORRANG VOOR GEBRUIKERSZINNEN ==========
+    // ========== ANTWOORD GENEREREN ==========
     function generateReply(userMessage, category) {
-        // 1. PRIORITEIT 1: Gebruik een eerdere gebruikerszin uit DEZELFDE categorie (80% kans)
         const phrasesForCat = userPhrases[category] || [];
         if (phrasesForCat.length > 0 && Math.random() < 0.8) {
-            // Kies een willekeurige eerdere zin uit dezelfde categorie
             const randomPhrase = phrasesForCat[Math.floor(Math.random() * phrasesForCat.length)];
             return randomPhrase;
         }
-        // 2. PRIORITEIT 2: Gebruik een geleerd woord uit een willekeurige categorie in een sjabloon
         if (learnedWords.length > 0 && Math.random() < 0.6) {
             const randomEntry = learnedWords[Math.floor(Math.random() * learnedWords.length)];
             const randomWord = randomEntry.word;
-            // Sjablonen die passen bij de categorie van het bericht (of algemeen)
             const templates = {
                 begroeting: [`Hallo! Jij bent ook een ${randomWord}!`, `Hé ${randomWord}, hoe gaat het?`, `Goedendag, mijn ${randomWord}!`],
                 boos: [`Jij bent zelf een ${randomWord}!`, `Niet zo ${randomWord} doen!`, `Wat een ${randomWord} ben jij!`],
@@ -273,7 +565,6 @@
             const catTemplates = templates[category] || templates.random;
             return catTemplates[Math.floor(Math.random() * catTemplates.length)];
         }
-        // 3. FALLBACK: standaard antwoorden (als er nog niets geleerd is)
         const fallbacks = [
             "Interessant! Vertel me meer.",
             "Daar moet ik even over nadenken...",
@@ -295,6 +586,7 @@
         chatContainer.appendChild(msgDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
+    
     function addBotMessage(text, category = "antwoord") {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message bot-message';
@@ -302,105 +594,104 @@
         chatContainer.appendChild(msgDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-    function showThinking() {
-        const thinkDiv = document.createElement('div');
-        thinkDiv.className = 'thinking';
-        thinkDiv.id = 'temp-thinking';
-        thinkDiv.innerHTML = `SmartBot denkt na <span style="animation: pulse 1s infinite;">...</span>`;
-        chatContainer.appendChild(thinkDiv);
+    
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'temp-typing';
+        typingDiv.innerHTML = `
+            <span class="typing-text">SmartBot typt</span>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
-        return thinkDiv;
+        return typingDiv;
     }
+    
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
+    
     function updateStatsUI() {
         messageCountSpan.innerText = totalMessages;
         learnedCountSpan.innerText = totalLearned;
-        // categorieën teller wordt al bijgewerkt via snapshot van userPhrases
-    }
-    function updateMemoryUI() {
-        if (!memoryListDiv) return;
-        memoryListDiv.innerHTML = "";
-        if (learnedWords.length === 0) {
-            memoryListDiv.innerHTML = "<em>Nog geen woorden geleerd. Typ iets!</em>";
-            return;
-        }
-        const recent = [...learnedWords].reverse().slice(0, 30);
-        recent.forEach(entry => {
-            const span = document.createElement('div');
-            span.className = 'memory-item';
-            span.textContent = entry.word + " (" + entry.category + ")";
-            span.title = `Geleerd uit categorie: ${entry.category}`;
-            memoryListDiv.appendChild(span);
-        });
     }
 
     // ========== BERICHTVERWERKING ==========
-    function handleUserInput() {
+    async function handleUserInput() {
+        if (isBlocked) return;
+        
         const message = userInput.value.trim();
         if (message === "") return;
-
+        
+        // Spam detectie
+        addToMessageHistory();
+        if (checkForSpam()) {
+            blockUser();
+            return;
+        }
+        
         const category = categorizeMessage(message);
         addUserMessage(message, category);
         userInput.value = "";
-
-        // Leren van bericht
+        
+        // Leer alleen als niet geblokkeerd
         learnFromMessage(message, category);
         totalMessages++;
         updateStatsUI();
-        syncLearnedWords(); // updates ook totalMessages in Firebase
-
-        // Toon denkproces
-        const thinkingDiv = showThinking();
-
+        syncLearnedWords();
+        
+        // Toon type-indicator
+        const typingIndicator = showTypingIndicator();
+        
         setTimeout(() => {
-            if (thinkingDiv && thinkingDiv.remove) thinkingDiv.remove();
-            const reply = generateReply(message, category);
-            addBotMessage(reply, category);
-            // Sla totale berichten opnieuw op (zekerheid)
-            statsRef.set({ totalMessages, totalLearned: learnedWords.length });
+            if (typingIndicator && typingIndicator.remove) typingIndicator.remove();
+            if (!isBlocked) {
+                const reply = generateReply(message, category);
+                addBotMessage(reply, category);
+                statsRef.set({ totalMessages, totalLearned: learnedWords.length });
+            }
         }, 1000 + Math.random() * 1000);
     }
 
-    // Wis alle wereldwijde data
-    function wipeGlobalMemory() {
-        if (confirm("⚠️ WAARSCHUWING! Dit wist ALLE geleerde woorden en gebruikerszinnen voor ALLE gebruikers. Onomkeerbaar! Weet je het zeker?")) {
-            userPhrasesRef.set({
-                begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
-            });
-            learnedWordsRef.set([]);
-            statsRef.set({ totalMessages: 0, totalLearned: 0 });
-            learnedWords = [];
-            totalMessages = 0;
-            totalLearned = 0;
-            updateMemoryUI();
-            updateStatsUI();
-            addBotMessage("🌍 Wereldwijd geheugen is gewist! Iedereen begint opnieuw.", "tip");
-        }
+    // ========== DISCLAIMER FUNCTIE ==========
+    function showDisclaimer() {
+        // Open disclaimer.txt in een nieuw tabblad
+        window.open('disclaimer.txt', '_blank');
     }
 
     // ========== START ==========
     window.onload = () => {
         registerActiveUser();
+        
+        // Disclaimer knop
+        const disclaimerBtn = document.getElementById('disclaimerBtn');
+        if (disclaimerBtn) {
+            disclaimerBtn.addEventListener('click', showDisclaimer);
+        }
+        
         const connectedRef = db.ref('.info/connected');
         connectedRef.on('value', (snap) => {
             if (snap.val()) {
-                connectionLabel.innerHTML = 'Online';
+                connectionLabel.innerHTML = '✅ Online (wereldwijd)';
                 if (statusDot) statusDot.style.backgroundColor = '#4cd964';
-                addBotMessage("Verbonden met database!", "begroeting");
+                addBotMessage("🌍 Verbonden met wereldwijde database! Alle gebruikers delen hun zinnen.", "begroeting");
             } else {
-                connectionLabel.innerHTML = 'Offline';
+                connectionLabel.innerHTML = '❌ Offline - alleen lokaal';
                 if (statusDot) statusDot.style.backgroundColor = '#ff3b30';
-                addBotMessage("⚠️ Geen verbinding met Firebase. U kunt SmartBot alsnog gebruiken.", "tip");
+                addBotMessage("⚠️ Geen verbinding met Firebase. Je berichten worden niet wereldwijd gedeeld.", "tip");
             }
         });
+        
         sendBtn.addEventListener('click', handleUserInput);
         userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUserInput(); });
-        clearMemoryBtn.addEventListener('click', wipeGlobalMemory);
-        addBotMessage("Hallo! Ik ben SmartBot. Waar wil je over praten?", "begroeting");
+        addBotMessage("Hallo! Ik ben SmartBot. Ik geef voorrang aan wat gebruikers eerder zeiden. Typ maar iets!", "begroeting");
     };
 </script>
 </body>
