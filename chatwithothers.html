@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeerChat - Directe Chat met Gebruikers</title>
+    <title>PeerChat - Chat met Gebruikersnamen</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -155,25 +155,38 @@
             border-bottom: 1px solid var(--input-border);
         }
         
-        .user-id {
-            font-size: 0.8rem;
-            word-break: break-all;
-            background: var(--input-bg);
-            padding: 8px;
-            border-radius: 8px;
+        .username-input {
+            display: flex;
+            gap: 8px;
             margin-top: 8px;
+        }
+        
+        .username-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background: var(--input-bg);
             color: var(--text-color);
         }
         
-        .copy-btn {
+        .username-input button {
+            padding: 8px 12px;
             background: #4a6cf7;
             color: white;
             border: none;
-            padding: 5px 10px;
             border-radius: 5px;
-            margin-top: 5px;
             cursor: pointer;
-            font-size: 0.75rem;
+        }
+        
+        .current-username {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 8px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            word-break: break-all;
         }
         
         .online-users {
@@ -192,7 +205,7 @@
         }
         
         .user-list li {
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 5px;
             background: var(--input-bg);
             border-radius: 8px;
@@ -353,27 +366,30 @@
             <span id="connectionLabel">Verbonden</span>
         </div>
         <h1>PeerChat</h1>
-        <p>Directe chat met andere gebruikers</p>
+        <p>Chat met andere gebruikers via gebruikersnaam</p>
     </div>
     
     <div class="main-content">
         <div class="sidebar">
             <div class="user-info">
-                <strong>Jouw ID:</strong>
-                <div class="user-id" id="myUserId">Laden...</div>
-                <button class="copy-btn" onclick="copyUserId()">📋 Kopieer ID</button>
+                <strong>👤 Jouw gebruikersnaam:</strong>
+                <div class="username-input">
+                    <input type="text" id="usernameInput" placeholder="Kies een gebruikersnaam" maxlength="20">
+                    <button onclick="setUsername()">Set</button>
+                </div>
+                <div class="current-username" id="currentUsernameDisplay">Nog niet ingesteld</div>
             </div>
             
             <div class="online-users">
-                <h3>📡 Actieve gebruikers</h3>
+                <h3>📡 Online gebruikers</h3>
                 <ul class="user-list" id="userList">
-                    <li>Zoeken naar gebruikers...</li>
+                    <li>Geen gebruikers online...</li>
                 </ul>
             </div>
             
             <div class="connect-input">
-                <input type="text" id="peerIdInput" placeholder="Voer gebruikers-ID in">
-                <button onclick="connectToUser()">🔗 Verbinden</button>
+                <input type="text" id="usernameConnectInput" placeholder="Voer gebruikersnaam in om te chatten">
+                <button onclick="connectToUsername()">🔗 Verbinden</button>
             </div>
         </div>
         
@@ -384,7 +400,7 @@
             <div class="chat-messages" id="chatMessages">
                 <div class="message message-other">
                     <div class="message-info">🤖 Systeem</div>
-                    Verbind met een gebruiker om te chatten!
+                    Stel eerst je gebruikersnaam in en verbind met iemand!
                 </div>
             </div>
             <div class="input-container">
@@ -399,19 +415,21 @@
     let peer = null;
     let currentConnection = null;
     let currentPeerId = null;
+    let currentPeerUsername = null;
     let myId = null;
+    let myUsername = null;
     let typingTimeout = null;
     let isTyping = false;
     
-    // Lijst met actieve verbindingen (voor broadcast)
-    let activeConnections = [];
+    // Gebruikers database (username -> peerId)
+    let userDatabase = {};
     
     // DOM elementen
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('message-input');
     const sendBtn = document.getElementById('send-btn');
     const userList = document.getElementById('userList');
-    const myUserIdSpan = document.getElementById('myUserId');
+    const currentUsernameDisplay = document.getElementById('currentUsernameDisplay');
     const chatWithLabel = document.getElementById('chatWithLabel');
     
     // ========== PEER.JS INITIALISATIE ==========
@@ -420,14 +438,38 @@
         
         peer.on('open', (id) => {
             myId = id;
-            myUserIdSpan.textContent = id;
-            addSystemMessage(`✅ Je bent online! Jouw ID: ${id.substring(0, 8)}...`);
-            startDiscovery();
+            console.log('Peer ID:', myId);
+            addSystemMessage(`✅ Verbonden met PeerChat netwerk!`);
+            
+            // Als er al een gebruikersnaam was ingesteld, registreer die opnieuw
+            if (myUsername) {
+                registerUsername();
+            }
         });
         
         peer.on('connection', (conn) => {
-            addSystemMessage(`📞 Nieuwe verbinding van: ${conn.peer.substring(0, 8)}...`);
-            setupConnection(conn);
+            addSystemMessage(`📞 Nieuwe verbindingsaanvraag...`);
+            
+            conn.on('data', (data) => {
+                handleIncomingData(data, conn);
+            });
+            
+            conn.on('open', () => {
+                // Vraag de gebruikersnaam van de ander op
+                conn.send({ type: 'request_username' });
+            });
+            
+            conn.on('close', () => {
+                if (currentConnection === conn) {
+                    addSystemMessage(`🔌 Verbinding verbroken met ${currentPeerUsername || 'onbekende gebruiker'}`);
+                    currentConnection = null;
+                    currentPeerId = null;
+                    currentPeerUsername = null;
+                    chatWithLabel.textContent = 'Niet verbonden';
+                    messageInput.disabled = true;
+                    sendBtn.disabled = true;
+                }
+            });
         });
         
         peer.on('error', (err) => {
@@ -445,19 +487,55 @@
         });
     }
     
-    // ========== DISCOVERY SERVICE (via localStorage broadcast) ==========
-    function startDiscovery() {
-        // Register bij localStorage
-        const discoveryKey = 'peerchat_users';
+    // ========== GEBRUIKERSNAAM REGISTRATIE ==========
+    function setUsername() {
+        const username = document.getElementById('usernameInput').value.trim();
+        if (!username) {
+            addSystemMessage('❌ Voer een geldige gebruikersnaam in!');
+            return;
+        }
         
+        if (username.length > 20) {
+            addSystemMessage('❌ Gebruikersnaam mag maximaal 20 tekens zijn!');
+            return;
+        }
+        
+        myUsername = username;
+        currentUsernameDisplay.textContent = myUsername;
+        document.getElementById('usernameInput').value = '';
+        
+        addSystemMessage(`✅ Je gebruikersnaam is nu: ${myUsername}`);
+        
+        if (myId) {
+            registerUsername();
+        }
+    }
+    
+    function registerUsername() {
+        // Registreer bij localStorage
+        const users = JSON.parse(localStorage.getItem('peerchat_usernames') || '{}');
+        users[myUsername] = {
+            peerId: myId,
+            lastSeen: Date.now()
+        };
+        localStorage.setItem('peerchat_usernames', JSON.stringify(users));
+        
+        addSystemMessage(`📡 Gebruikersnaam "${myUsername}" geregistreerd!`);
+        
+        // Start discovery
+        startDiscovery();
+    }
+    
+    // ========== DISCOVERY SERVICE ==========
+    function startDiscovery() {
         function updateUserList() {
-            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
+            const users = JSON.parse(localStorage.getItem('peerchat_usernames') || '{}');
             const now = Date.now();
             const activeUsers = [];
             
-            for (const [id, data] of Object.entries(users)) {
-                if (now - data.lastSeen < 30000 && id !== myId) {
-                    activeUsers.push({ id, name: data.name || id.substring(0, 8) });
+            for (const [username, data] of Object.entries(users)) {
+                if (now - data.lastSeen < 30000 && username !== myUsername) {
+                    activeUsers.push({ username, peerId: data.peerId });
                 }
             }
             
@@ -466,52 +544,52 @@
                 userList.innerHTML = '<li>👤 Geen andere actieve gebruikers</li>';
             } else {
                 userList.innerHTML = activeUsers.map(user => `
-                    <li onclick="connectToSpecificUser('${user.id}')">
-                        <span>👤 ${user.name}</span>
+                    <li onclick="connectToUsername('${user.username}')">
+                        <span>👤 ${escapeHtml(user.username)}</span>
                         <span style="font-size:0.7rem;">online</span>
                     </li>
                 `).join('');
             }
         }
         
-        // Registreer deze gebruiker
-        function registerUser() {
-            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
-            users[myId] = {
-                lastSeen: Date.now(),
-                name: myId.substring(0, 8)
-            };
-            localStorage.setItem(discoveryKey, JSON.stringify(users));
-            updateUserList();
+        // Registreer/update deze gebruiker regelmatig
+        function updateRegistration() {
+            if (myUsername && myId) {
+                const users = JSON.parse(localStorage.getItem('peerchat_usernames') || '{}');
+                users[myUsername] = {
+                    peerId: myId,
+                    lastSeen: Date.now()
+                };
+                localStorage.setItem('peerchat_usernames', JSON.stringify(users));
+                updateUserList();
+            }
         }
         
         // Cleanup oude gebruikers
         function cleanupUsers() {
-            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
+            const users = JSON.parse(localStorage.getItem('peerchat_usernames') || '{}');
             const now = Date.now();
             let changed = false;
             
-            for (const [id, data] of Object.entries(users)) {
+            for (const [username, data] of Object.entries(users)) {
                 if (now - data.lastSeen > 30000) {
-                    delete users[id];
+                    delete users[username];
                     changed = true;
                 }
             }
             
             if (changed) {
-                localStorage.setItem(discoveryKey, JSON.stringify(users));
+                localStorage.setItem('peerchat_usernames', JSON.stringify(users));
             }
             updateUserList();
         }
         
-        // Start registratie interval
-        registerUser();
-        setInterval(registerUser, 10000);
+        updateRegistration();
+        setInterval(updateRegistration, 10000);
         setInterval(cleanupUsers, 15000);
         
-        // Luister naar localStorage changes
         window.addEventListener('storage', (e) => {
-            if (e.key === discoveryKey) {
+            if (e.key === 'peerchat_usernames') {
                 updateUserList();
             }
         });
@@ -519,66 +597,107 @@
         updateUserList();
     }
     
-    // ========== VERBINDING SETUP ==========
-    function setupConnection(conn) {
-        conn.on('open', () => {
-            if (currentConnection && currentConnection !== conn) {
-                currentConnection.close();
+    // ========== VERBINDING MAKEN ==========
+    function connectToUsername(username) {
+        if (!username) {
+            username = document.getElementById('usernameConnectInput').value.trim();
+            if (!username) {
+                addSystemMessage('❌ Voer een gebruikersnaam in!');
+                return;
             }
-            currentConnection = conn;
-            currentPeerId = conn.peer;
-            chatWithLabel.textContent = `Chatten met: ${conn.peer.substring(0, 8)}...`;
+        }
+        
+        if (username === myUsername) {
+            addSystemMessage('❌ Je kunt niet met jezelf chatten!');
+            return;
+        }
+        
+        // Zoek peerId op basis van gebruikersnaam
+        const users = JSON.parse(localStorage.getItem('peerchat_usernames') || '{}');
+        const userData = users[username];
+        
+        if (!userData) {
+            addSystemMessage(`❌ Gebruiker "${username}" is niet online!`);
+            return;
+        }
+        
+        const peerId = userData.peerId;
+        
+        if (currentConnection && !currentConnection.closed) {
+            currentConnection.close();
+        }
+        
+        addSystemMessage(`📞 Verbinden met "${username}"...`);
+        
+        const conn = peer.connect(peerId);
+        currentConnection = conn;
+        currentPeerId = peerId;
+        currentPeerUsername = username;
+        
+        conn.on('open', () => {
+            chatWithLabel.textContent = `Chatten met: ${username}`;
             messageInput.disabled = false;
             sendBtn.disabled = false;
-            addSystemMessage(`🔗 Verbonden met ${conn.peer.substring(0, 8)}...`);
+            addSystemMessage(`✅ Verbonden met ${username}!`);
+            
+            // Stuur eigen gebruikersnaam
+            conn.send({ type: 'username', username: myUsername });
         });
         
         conn.on('data', (data) => {
-            handleIncomingMessage(data, conn.peer);
+            handleIncomingData(data, conn);
         });
         
         conn.on('close', () => {
             if (currentConnection === conn) {
-                addSystemMessage(`🔌 Verbinding verbroken met ${conn.peer.substring(0, 8)}...`);
+                addSystemMessage(`🔌 Verbinding verbroken met ${currentPeerUsername || username}`);
                 currentConnection = null;
                 currentPeerId = null;
+                currentPeerUsername = null;
                 chatWithLabel.textContent = 'Niet verbonden';
                 messageInput.disabled = true;
                 sendBtn.disabled = true;
             }
         });
         
-        conn.on('error', (err) => {
-            console.error('Connection error:', err);
-            addSystemMessage(`⚠️ Fout met verbinding: ${err.message}`);
-        });
+        document.getElementById('usernameConnectInput').value = '';
     }
     
     // ========== BERICHTEN AFHANDELEN ==========
-    function handleIncomingMessage(data, fromPeerId) {
+    function handleIncomingData(data, conn) {
         if (data.type === 'message') {
-            addMessage(data.text, false, fromPeerId);
+            addMessage(data.text, false, data.sender);
         } else if (data.type === 'typing') {
             showTypingIndicator();
+        } else if (data.type === 'username') {
+            if (conn === currentConnection) {
+                currentPeerUsername = data.username;
+                chatWithLabel.textContent = `Chatten met: ${data.username}`;
+            }
+        } else if (data.type === 'request_username') {
+            if (myUsername) {
+                conn.send({ type: 'username', username: myUsername });
+            }
         }
     }
     
     function sendMessage(text) {
-        if (!currentConnection || currentConnection.close) {
+        if (!currentConnection || currentConnection.closed) {
             addSystemMessage('❌ Geen actieve verbinding!');
             return;
         }
         
         currentConnection.send({
             type: 'message',
-            text: text
+            text: text,
+            sender: myUsername
         });
         
-        addMessage(text, true, null);
+        addMessage(text, true, myUsername);
     }
     
     function sendTyping() {
-        if (!currentConnection || currentConnection.close) return;
+        if (!currentConnection || currentConnection.closed) return;
         
         if (!isTyping) {
             isTyping = true;
@@ -594,13 +713,13 @@
     }
     
     // ========== UI FUNCTIES ==========
-    function addMessage(text, isUser, fromPeerId = null) {
+    function addMessage(text, isUser, senderName) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isUser ? 'message-user' : 'message-other'}`;
         
         const infoSpan = document.createElement('div');
         infoSpan.className = 'message-info';
-        infoSpan.textContent = isUser ? 'Jij' : `${(fromPeerId || 'Onbekend').substring(0, 8)}...`;
+        infoSpan.textContent = isUser ? myUsername || 'Jij' : senderName || currentPeerUsername || 'Onbekend';
         
         const textSpan = document.createElement('div');
         textSpan.textContent = text;
@@ -632,6 +751,12 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+    
     let typingIndicatorDiv = null;
     
     function showTypingIndicator() {
@@ -641,7 +766,7 @@
         
         typingIndicatorDiv = document.createElement('div');
         typingIndicatorDiv.className = 'typing-indicator';
-        typingIndicatorDiv.textContent = '👤 Gebruiker typt...';
+        typingIndicatorDiv.textContent = `👤 ${currentPeerUsername || 'Gebruiker'} typt...`;
         chatMessages.appendChild(typingIndicatorDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         
@@ -653,32 +778,10 @@
         }, 2000);
     }
     
-    // ========== VERBINDINGSFUNCTIES ==========
-    function connectToSpecificUser(peerId) {
-        if (currentConnection && !currentConnection.close) {
-            currentConnection.close();
-        }
-        
-        addSystemMessage(`📞 Verbinden met ${peerId.substring(0, 8)}...`);
-        const conn = peer.connect(peerId);
-        setupConnection(conn);
-    }
-    
-    function connectToUser() {
-        const peerId = document.getElementById('peerIdInput').value.trim();
-        if (!peerId) {
-            addSystemMessage('❌ Voer een geldig gebruikers-ID in');
-            return;
-        }
-        
-        connectToSpecificUser(peerId);
-        document.getElementById('peerIdInput').value = '';
-    }
-    
-    function copyUserId() {
-        if (myId) {
-            navigator.clipboard.writeText(myId);
-            addSystemMessage('✅ Gebruikers-ID gekopieerd!');
+    // ========== TYPING DETECTIE ==========
+    function onMessageTyping() {
+        if (currentConnection && !currentConnection.closed) {
+            sendTyping();
         }
     }
     
@@ -687,33 +790,35 @@
         window.open('disclaimer.txt', '_blank');
     }
     
-    // ========== TYPING DETECTIE ==========
-    function onMessageTyping() {
-        if (currentConnection && !currentConnection.close) {
-            sendTyping();
-        }
-    }
-    
     // ========== INITIALISATIE ==========
     function init() {
         initPeer();
         
         messageInput.addEventListener('input', onMessageTyping);
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && messageInput.value.trim()) {
+            if (e.key === 'Enter' && messageInput.value.trim() && currentConnection && !currentConnection.closed) {
                 sendMessage(messageInput.value.trim());
                 messageInput.value = '';
             }
         });
         
         sendBtn.addEventListener('click', () => {
-            if (messageInput.value.trim()) {
+            if (messageInput.value.trim() && currentConnection && !currentConnection.closed) {
                 sendMessage(messageInput.value.trim());
                 messageInput.value = '';
             }
         });
         
         document.getElementById('disclaimerBtn').addEventListener('click', showDisclaimer);
+        
+        // Enter in username field
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') setUsername();
+        });
+        
+        document.getElementById('usernameConnectInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') connectToUsername();
+        });
     }
     
     // Start alles
