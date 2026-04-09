@@ -71,7 +71,7 @@
         .header { 
             background: linear-gradient(90deg, #4a6cf7, #7a52d4); 
             color: white; 
-            padding: 20px; 
+            padding: 15px 20px;
             text-align: center; 
             position: relative; 
         }
@@ -125,24 +125,14 @@
             100% { opacity: 1; transform: scale(1.2); } 
         }
         
-        .bot-icon { 
-            width: 60px; 
-            height: 60px; 
-            background: white; 
-            border-radius: 50%; 
-            margin: 0 auto 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 1.8rem; 
-            color: #4a6cf7; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
-            animation: bounce 2s infinite; 
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
         }
         
-        @keyframes bounce { 
-            0%,100% { transform: translateY(0); } 
-            50% { transform: translateY(-5px); } 
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
         }
         
         .chat-container { 
@@ -321,6 +311,8 @@
         @media (max-width: 600px) { 
             .message { max-width: 90%; } 
             .stats { flex-direction: column; gap: 10px; } 
+            .header h1 { font-size: 1.2rem; }
+            .header p { font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -331,7 +323,6 @@
             <button class="disclaimer-btn" id="disclaimerBtn">⚠️ Disclaimer</button>
         </div>
         <div class="online-status"><div class="status-dot"></div><span id="connectionLabel">Verbinden...</span></div>
-        <div class="bot-icon">🤖</div>
         <h1>SmartBot</h1>
         <p>De chatbot die leert van de gebruikers</p>
     </div>
@@ -365,8 +356,8 @@
     // Spam detectie variabelen
     let messageHistory = [];
     let isBlocked = false;
-    const SPAM_THRESHOLD = 5; // 5 berichten in korte tijd
-    const SPAM_TIME_WINDOW = 5000; // 5 seconden
+    const SPAM_THRESHOLD = 5;
+    const SPAM_TIME_WINDOW = 5000;
 
     // Referenties
     const userPhrasesRef = db.ref('smartbot/userPhrases');
@@ -411,19 +402,15 @@
 
     function blockUser() {
         isBlocked = true;
-        // Clear de chat
         chatContainer.innerHTML = '';
-        // Voeg een bericht toe dat de chatbot is geblokkeerd
         const blockMsg = document.createElement('div');
         blockMsg.className = 'message bot-message';
         blockMsg.innerHTML = `🚫 Je bent geblokkeerd wegens spamgedrag. Je wordt doorgestuurd...`;
         chatContainer.appendChild(blockMsg);
         
-        // Verwijder input en send button
         userInput.disabled = true;
         sendBtn.disabled = true;
         
-        // Doorsturen na 2 seconden
         setTimeout(() => {
             window.location.href = 'https://jimisdebest.github.io/rust';
         }, 2000);
@@ -630,7 +617,6 @@
         const message = userInput.value.trim();
         if (message === "") return;
         
-        // Spam detectie
         addToMessageHistory();
         if (checkForSpam()) {
             blockUser();
@@ -641,13 +627,11 @@
         addUserMessage(message, category);
         userInput.value = "";
         
-        // Leer alleen als niet geblokkeerd
         learnFromMessage(message, category);
         totalMessages++;
         updateStatsUI();
         syncLearnedWords();
         
-        // Toon type-indicator
         const typingIndicator = showTypingIndicator();
         
         setTimeout(() => {
@@ -662,7 +646,6 @@
 
     // ========== DISCLAIMER FUNCTIE ==========
     function showDisclaimer() {
-        // Open disclaimer.txt in een nieuw tabblad
         window.open('disclaimer.txt', '_blank');
     }
 
@@ -670,7 +653,6 @@
     window.onload = () => {
         registerActiveUser();
         
-        // Disclaimer knop
         const disclaimerBtn = document.getElementById('disclaimerBtn');
         if (disclaimerBtn) {
             disclaimerBtn.addEventListener('click', showDisclaimer);
