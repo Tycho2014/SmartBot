@@ -20,12 +20,12 @@
             --text-color: #333;
             --input-bg: rgba(255,255,255,0.95);
             --input-border: #ddd;
-            --sidebar-bg: #f0f5ff;
             --online-badge: #4cd964;
             --system-color: rgba(136,136,136,0.9);
             --overlay-bg: rgba(0,0,0,0.5);
             --modal-bg: white;
             --online-users-bg: rgba(255,255,255,0.9);
+            --banned-bg: rgba(255,59,48,0.9);
         }
         
         /* Donker thema */
@@ -44,6 +44,7 @@
                 --system-color: rgba(170,170,170,0.9);
                 --modal-bg: #2d2d3f;
                 --online-users-bg: rgba(45,45,63,0.9);
+                --banned-bg: rgba(255,59,48,0.9);
             }
         }
         
@@ -174,6 +175,13 @@
             font-size: 0.8rem;
             color: var(--text-color);
             border: 1px solid var(--input-border);
+        }
+        
+        .online-user-badge.banned {
+            background: var(--banned-bg);
+            color: white;
+            text-decoration: line-through;
+            opacity: 0.6;
         }
         
         .online-dot {
@@ -431,6 +439,15 @@
             transform: scale(1.05);
         }
         
+        .password-modal .modal-content {
+            max-width: 350px;
+        }
+        
+        .password-modal input {
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        
         .current-user {
             position: absolute;
             bottom: 10px;
@@ -487,7 +504,7 @@
             </div>
         </div>
         <div class="input-container">
-            <input type="text" id="message-input" placeholder="Typ je bericht..." disabled>
+            <input type="text" id="message-input" placeholder="Typ je bericht... (gebruik 'ban (naam)' om iemand te bannen)" disabled>
             <button id="send-btn" disabled>➤</button>
         </div>
     </div>
@@ -500,6 +517,17 @@
         <p style="margin-bottom: 15px; color: var(--text-color);">Kies een gebruikersnaam om te beginnen</p>
         <input type="text" id="modalUsernameInput" placeholder="Jouw gebruikersnaam" maxlength="20">
         <button onclick="setNameFromModal()">Start Chatten →</button>
+    </div>
+</div>
+
+<!-- Modal popup voor wachtwoord bij bannen -->
+<div class="modal" id="passwordModal">
+    <div class="modal-content">
+        <h2>🔒 Admin verificatie</h2>
+        <p style="margin-bottom: 15px; color: var(--text-color);">Voer het admin wachtwoord in om deze gebruiker te bannen</p>
+        <input type="password" id="passwordInput" placeholder="Wachtwoord" autocomplete="off">
+        <button onclick="verifyBanPassword()">Bevestig Ban →</button>
+        <button onclick="closePasswordModal()" style="background: #888; margin-top: 10px;">Annuleren</button>
     </div>
 </div>
 
@@ -522,6 +550,7 @@
     const messagesRef = db.ref('globalchat/messages');
     const usersRef = db.ref('globalchat/users');
     const typingRef = db.ref('globalchat/typing');
+    const bannedUsersRef = db.ref('globalchat/bannedUsers');
     
     // Variabelen
     let myUsername = null;
@@ -529,6 +558,8 @@
     let typingTimeout = null;
     let isTyping = false;
     let loadedMessages = new Set();
+    let pendingBanUsername = null;
+    let bannedUsers = new Set();
     
     // DOM elementen
     const chatMessages = document.getElementById('chatMessages');
@@ -540,6 +571,79 @@
     const onlineUsersList = document.getElementById('onlineUsersList');
     const currentUserDisplay = document.getElementById('currentUserDisplay');
     const nameModal = document.getElementById('nameModal');
+    const passwordModal = document.getElementById('passwordModal');
+    
+    // ========== BAN FUNCTIES ==========
+    function setupBannedUsersListener() {
+        bannedUsersRef.on('value', (snapshot) => {
+            const bans = snapshot.val() || {};
+            bannedUsers.clear();
+            for (const [username, data] of Object.entries(bans)) {
+                bannedUsers.add(username);
+            }
+            updateOnlineUsersList();
+        });
+    }
+    
+    function isUserBanned(username) {
+        return bannedUsers.has(username);
+    }
+    
+    function banUser(username, bannerName) {
+        if (isUserBanned(username)) {
+            addSystemMessage(`⚠️ ${username} is al verbannen!`);
+            return false;
+        }
+        
+        // Voeg toe aan banned users in Firebase
+        bannedUsersRef.child(username).set({
+            bannedBy: bannerName,
+            bannedAt: Date.now(),
+            reason: "Verbanning door admin"
+        });
+        
+        addSystemMessage(`🔨 ${username} is verbannen door ${bannerName}!`);
+        
+        // Verwijder de gebande gebruiker uit de online users
+        usersRef.once('value', (snapshot) => {
+            const users = snapshot.val() || {};
+            for (const [id, data] of Object.entries(users)) {
+                if (data.username === username) {
+                    usersRef.child(id).remove();
+                    // Ook typing indicator verwijderen
+                    typingRef.child(id).remove();
+                }
+            }
+        });
+        
+        return true;
+    }
+    
+    function showBanPasswordModal(username) {
+        pendingBanUsername = username;
+        document.getElementById('passwordInput').value = '';
+        passwordModal.classList.add('active');
+    }
+    
+    function closePasswordModal() {
+        passwordModal.classList.remove('active');
+        pendingBanUsername = null;
+    }
+    
+    function verifyBanPassword() {
+        const password = document.getElementById('passwordInput').value;
+        const ADMIN_PASSWORD = "Jimschool10";
+        
+        if (password === ADMIN_PASSWORD) {
+            if (pendingBanUsername) {
+                banUser(pendingBanUsername, myUsername);
+                closePasswordModal();
+            }
+        } else {
+            alert("❌ Onjuist wachtwoord! Je hebt geen admin rechten.");
+            document.getElementById('passwordInput').value = '';
+        }
+    }
     
     // ========== LOCALSTORAGE FUNCTIES ==========
     function loadUsernameFromStorage() {
@@ -624,6 +728,14 @@
     
     // ========== GEBRUIKER REGISTRATIE ==========
     function registerUser() {
+        // Check of deze gebruiker gebanned is
+        if (isUserBanned(myUsername)) {
+            addSystemMessage(`🔨 Je bent verbannen van deze chat! Je kunt geen berichten meer sturen.`);
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            return;
+        }
+        
         const userRef = usersRef.child(myUserId);
         userRef.set({
             username: myUsername,
@@ -638,7 +750,7 @@
         });
         
         setInterval(() => {
-            if (myUserId && myUsername) {
+            if (myUserId && myUsername && !isUserBanned(myUsername)) {
                 usersRef.child(myUserId).update({
                     username: myUsername,
                     lastSeen: firebase.database.ServerValue.TIMESTAMP
@@ -652,6 +764,27 @@
         const text = messageInput.value.trim();
         if (!text) return;
         if (!myUsername) return;
+        
+        // Check of gebruiker gebanned is
+        if (isUserBanned(myUsername)) {
+            addSystemMessage(`🔨 Je bent verbannen en kunt geen berichten meer sturen!`);
+            messageInput.value = '';
+            return;
+        }
+        
+        // Check voor ban commando
+        const banMatch = text.match(/^ban\s+(.+)$/i);
+        if (banMatch) {
+            const targetName = banMatch[1].trim();
+            if (targetName.toLowerCase() === myUsername.toLowerCase()) {
+                addSystemMessage(`❌ Je kunt jezelf niet verbannen!`);
+                messageInput.value = '';
+                return;
+            }
+            showBanPasswordModal(targetName);
+            messageInput.value = '';
+            return;
+        }
         
         const message = {
             text: text,
@@ -686,8 +819,8 @@
     }
     
     // ========== ONLINE GEBRUIKERS ==========
-    function setupUserListener() {
-        usersRef.on('value', (snapshot) => {
+    function updateOnlineUsersList() {
+        usersRef.once('value', (snapshot) => {
             const users = snapshot.val() || {};
             const now = Date.now();
             const onlineUsers = [];
@@ -695,9 +828,10 @@
             for (const [id, data] of Object.entries(users)) {
                 const lastSeen = data.lastSeen;
                 const isOnline = lastSeen && (now - lastSeen < 30000);
+                const isBanned = isUserBanned(data.username);
                 
                 if (isOnline && id !== myUserId) {
-                    onlineUsers.push(data.username);
+                    onlineUsers.push({ username: data.username, isBanned });
                 }
             }
             
@@ -706,13 +840,19 @@
             if (onlineUsers.length === 0) {
                 onlineUsersList.innerHTML = '<span style="opacity:0.6;">Geen andere gebruikers online</span>';
             } else {
-                onlineUsersList.innerHTML = onlineUsers.map(username => `
-                    <span class="online-user-badge">
+                onlineUsersList.innerHTML = onlineUsers.map(user => `
+                    <span class="online-user-badge ${user.isBanned ? 'banned' : ''}">
                         <span class="online-dot"></span>
-                        ${escapeHtml(username)}
+                        ${escapeHtml(user.username)}${user.isBanned ? ' (verbannen)' : ''}
                     </span>
                 `).join('');
             }
+        });
+    }
+    
+    function setupUserListener() {
+        usersRef.on('value', () => {
+            updateOnlineUsersList();
         });
         
         setInterval(() => {
@@ -725,6 +865,7 @@
                     }
                 }
             });
+            updateOnlineUsersList();
         }, 10000);
     }
     
@@ -736,7 +877,9 @@
             
             for (const [id, data] of Object.entries(typingData)) {
                 if (id !== myUserId && data.isTyping && (Date.now() - data.timestamp < 3000)) {
-                    typingUsers.push(data.username);
+                    if (!isUserBanned(data.username)) {
+                        typingUsers.push(data.username);
+                    }
                 }
             }
             
@@ -774,6 +917,7 @@
     
     function startTyping() {
         if (!myUserId || !myUsername) return;
+        if (isUserBanned(myUsername)) return;
         
         if (!isTyping) {
             isTyping = true;
@@ -841,7 +985,7 @@
             if (snap.val()) {
                 connectionLabel.innerHTML = '✅ Online';
                 if (statusDot) statusDot.style.backgroundColor = '#4cd964';
-                if (myUsername) {
+                if (myUsername && !isUserBanned(myUsername)) {
                     addSystemMessage('🌍 Verbonden met wereldwijde chat!');
                     registerUser();
                 }
@@ -863,13 +1007,14 @@
         setupConnectionStatus();
         setupUserListener();
         setupMessageListener();
+        setupBannedUsersListener();
         
         // Oude berichten opschonen (elke dag)
         cleanOldMessages();
         setInterval(cleanOldMessages, 24 * 60 * 60 * 1000);
         
         messageInput.addEventListener('input', () => {
-            if (myUsername && messageInput.value.trim().length > 0) {
+            if (myUsername && !isUserBanned(myUsername) && messageInput.value.trim().length > 0) {
                 startTyping();
             } else {
                 stopTyping();
@@ -877,13 +1022,13 @@
         });
         
         messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && messageInput.value.trim() && myUsername) {
+            if (e.key === 'Enter' && messageInput.value.trim() && myUsername && !isUserBanned(myUsername)) {
                 sendMessage();
             }
         });
         
         sendBtn.addEventListener('click', () => {
-            if (messageInput.value.trim() && myUsername) {
+            if (messageInput.value.trim() && myUsername && !isUserBanned(myUsername)) {
                 sendMessage();
             }
         });
@@ -899,6 +1044,11 @@
             registerUser();
             setupTypingListener();
             addSystemMessage(`👋 Welkom terug ${myUsername}!`);
+            if (isUserBanned(myUsername)) {
+                addSystemMessage(`🔨 Je bent verbannen van deze chat! Je kunt geen berichten meer sturen.`);
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            }
         }
     }
     
