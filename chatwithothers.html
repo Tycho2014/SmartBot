@@ -25,6 +25,8 @@
             --sidebar-bg: #f0f5ff;
             --online-badge: #4cd964;
             --system-color: #888;
+            --overlay-bg: rgba(0,0,0,0.5);
+            --modal-bg: white;
         }
         
         /* Donker thema */
@@ -44,6 +46,7 @@
                 --sidebar-bg: #252538;
                 --online-badge: #4cd964;
                 --system-color: #aaa;
+                --modal-bg: #2d2d3f;
             }
         }
         
@@ -85,7 +88,7 @@
             gap: 10px;
         }
         
-        .disclaimer-btn {
+        .disclaimer-btn, .toggle-sidebar-btn {
             background: rgba(0,0,0,0.4);
             color: white;
             border: none;
@@ -96,7 +99,7 @@
             transition: background 0.3s;
         }
         
-        .disclaimer-btn:hover {
+        .disclaimer-btn:hover, .toggle-sidebar-btn:hover {
             background: rgba(0,0,0,0.6);
         }
         
@@ -140,6 +143,7 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .sidebar {
@@ -149,6 +153,13 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            transition: width 0.3s ease, padding 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
         }
         
         .user-info {
@@ -261,12 +272,18 @@
             position: relative;
             color: var(--text-color);
             word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
+            animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
         }
         
         .message-user {
@@ -274,6 +291,18 @@
             background: linear-gradient(135deg, var(--user-msg-start), var(--user-msg-end));
             color: white;
             border-bottom-right-radius: 5px;
+            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
         }
         
         .message-other {
@@ -303,12 +332,6 @@
         
         .message-user .message-info {
             color: rgba(255,255,255,0.8);
-        }
-        
-        .message-time {
-            font-size: 0.65rem;
-            margin-top: 5px;
-            opacity: 0.6;
         }
         
         .input-container { 
@@ -401,6 +424,83 @@
             }
         }
         
+        /* Modal popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--modal-bg);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .modal-content button {
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #4a6cf7, #7a52d4);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+        
+        .modal-content button:hover {
+            transform: scale(1.05);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 width: 220px;
@@ -415,6 +515,7 @@
 <div class="container">
     <div class="header">
         <div class="header-buttons">
+            <button class="toggle-sidebar-btn" id="toggleSidebarBtn">☰ Zijmenu</button>
             <button class="disclaimer-btn" id="disclaimerBtn">⚠️ Disclaimer</button>
         </div>
         <div class="online-status">
@@ -426,12 +527,12 @@
     </div>
     
     <div class="main-content">
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="user-info">
                 <strong>👤 Jouw naam:</strong>
                 <div class="username-input">
                     <input type="text" id="usernameInput" placeholder="Kies een gebruikersnaam" maxlength="20">
-                    <button onclick="setUsername()">Set</button>
+                    <button onclick="changeUsername()">Wijzig</button>
                 </div>
                 <div class="current-username" id="currentUsernameDisplay">Nog niet ingesteld</div>
             </div>
@@ -450,7 +551,7 @@
             </div>
             <div class="chat-messages" id="chatMessages">
                 <div class="message message-system">
-                    Stel je gebruikersnaam in om te chatten!
+                    Welkom bij GlobalChat!
                 </div>
             </div>
             <div class="input-container">
@@ -460,6 +561,17 @@
         </div>
     </div>
 </div>
+
+<!-- Modal popup voor naam -->
+<div class="modal" id="nameModal">
+    <div class="modal-content">
+        <h2>👋 Welkom bij GlobalChat!</h2>
+        <p style="margin-bottom: 15px; color: var(--text-color);">Kies een gebruikersnaam om te beginnen</p>
+        <input type="text" id="modalUsernameInput" placeholder="Jouw gebruikersnaam" maxlength="20">
+        <button onclick="setNameFromModal()">Start Chatten →</button>
+    </div>
+</div>
+
 <script>
     // ========== FIREBASE CONFIG ==========
     const firebaseConfig = {
@@ -485,7 +597,8 @@
     let myUserId = null;
     let typingTimeout = null;
     let isTyping = false;
-    let loadedMessages = new Set(); // Om dubbele berichten te voorkomen
+    let loadedMessages = new Set();
+    let sidebarCollapsed = false;
     
     // DOM elementen
     const chatMessages = document.getElementById('chatMessages');
@@ -496,36 +609,118 @@
     const connectionLabel = document.getElementById('connectionLabel');
     const statusDot = document.querySelector('.status-dot');
     const onlineCountSpan = document.getElementById('onlineCount');
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    const nameModal = document.getElementById('nameModal');
     
-    // ========== GEBRUIKERSNAAM INSTELLEN ==========
-    function setUsername() {
-        const username = document.getElementById('usernameInput').value.trim();
+    // ========== LOCALSTORAGE FUNCTIES ==========
+    function loadUsernameFromStorage() {
+        const savedName = localStorage.getItem('globalchat_username');
+        if (savedName) {
+            myUsername = savedName;
+            myUserId = localStorage.getItem('globalchat_userid');
+            if (!myUserId) {
+                myUserId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                localStorage.setItem('globalchat_userid', myUserId);
+            }
+            currentUsernameDisplay.textContent = myUsername;
+            enableChat();
+            registerUser();
+            setupTypingListener();
+            return true;
+        }
+        return false;
+    }
+    
+    function saveUsernameToStorage(username) {
+        localStorage.setItem('globalchat_username', username);
+        localStorage.setItem('globalchat_userid', myUserId);
+    }
+    
+    // ========== MODAL FUNCTIES ==========
+    function showModal() {
+        nameModal.classList.add('active');
+    }
+    
+    function hideModal() {
+        nameModal.classList.remove('active');
+    }
+    
+    function setNameFromModal() {
+        const username = document.getElementById('modalUsernameInput').value.trim();
         if (!username) {
-            addSystemMessage('❌ Voer een geldige gebruikersnaam in!');
+            alert('Voer een geldige gebruikersnaam in!');
             return;
         }
-        
         if (username.length > 20) {
-            addSystemMessage('❌ Gebruikersnaam mag maximaal 20 tekens zijn!');
+            alert('Gebruikersnaam mag maximaal 20 tekens zijn!');
             return;
         }
         
         myUsername = username;
         myUserId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        saveUsernameToStorage(username);
+        currentUsernameDisplay.textContent = myUsername;
+        
+        hideModal();
+        enableChat();
+        registerUser();
+        setupTypingListener();
+        addSystemMessage(`✅ Welkom ${myUsername}! Je bent nu online.`);
+    }
+    
+    function changeUsername() {
+        const newName = document.getElementById('usernameInput').value.trim();
+        if (!newName) {
+            addSystemMessage('❌ Voer een geldige gebruikersnaam in!');
+            return;
+        }
+        if (newName.length > 20) {
+            addSystemMessage('❌ Gebruikersnaam mag maximaal 20 tekens zijn!');
+            return;
+        }
+        
+        // Verwijder oude gebruiker
+        if (myUserId) {
+            usersRef.child(myUserId).remove();
+            if (isTyping) typingRef.child(myUserId).remove();
+        }
+        
+        myUsername = newName;
+        myUserId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        saveUsernameToStorage(newName);
         currentUsernameDisplay.textContent = myUsername;
         document.getElementById('usernameInput').value = '';
         
-        // Schakel chat in
+        registerUser();
+        addSystemMessage(`✅ Gebruikersnaam gewijzigd naar ${myUsername}!`);
+    }
+    
+    function enableChat() {
         messageInput.disabled = false;
         sendBtn.disabled = false;
+        messageInput.focus();
+    }
+    
+    // ========== BERICHTEN OUDER DAN 2 DAGEN VERWIJDEREN ==========
+    function cleanOldMessages() {
+        const twoDaysAgo = Date.now() - (2 * 24 * 60 * 60 * 1000);
         
-        addSystemMessage(`✅ Welkom ${myUsername}! Je bent nu online.`);
-        
-        // Registreer gebruiker
-        registerUser();
-        
-        // Start typing indicator listener
-        setupTypingListener();
+        messagesRef.once('value', (snapshot) => {
+            const messages = snapshot.val() || {};
+            let deletedCount = 0;
+            
+            for (const [key, message] of Object.entries(messages)) {
+                if (message.timestamp && message.timestamp < twoDaysAgo) {
+                    messagesRef.child(key).remove();
+                    deletedCount++;
+                }
+            }
+            
+            if (deletedCount > 0) {
+                console.log(`🗑️ ${deletedCount} oude berichten verwijderd`);
+            }
+        });
     }
     
     // ========== GEBRUIKER REGISTRATIE ==========
@@ -536,7 +731,6 @@
             lastSeen: firebase.database.ServerValue.TIMESTAMP
         });
         
-        // Verwijder bij sluiten
         window.addEventListener('beforeunload', () => {
             if (myUserId) {
                 usersRef.child(myUserId).remove();
@@ -544,7 +738,6 @@
             }
         });
         
-        // Update regelmatig
         setInterval(() => {
             if (myUserId && myUsername) {
                 usersRef.child(myUserId).update({
@@ -552,31 +745,29 @@
                     lastSeen: firebase.database.ServerValue.TIMESTAMP
                 });
             }
-        }, 25);
+        }, 15000);
     }
     
     // ========== BERICHTEN VERSTUREN ==========
     function sendMessage() {
         const text = messageInput.value.trim();
         if (!text) return;
-        if (!myUsername) {
-            addSystemMessage('❌ Stel eerst je gebruikersnaam in!');
-            return;
-        }
+        if (!myUsername) return;
         
         const message = {
             text: text,
             username: myUsername,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            timestamp: Date.now(),
             userId: myUserId,
             messageId: Date.now() + '_' + Math.random().toString(36).substr(2, 6)
         };
         
         messagesRef.push(message);
         messageInput.value = '';
-        
-        // Stop typing indicator
         stopTyping();
+        
+        // Voeg eigen bericht direct toe voor snellere feedback
+        addMessage(text, true, myUsername, null);
     }
     
     // ========== BERICHTEN ONTVANGEN ==========
@@ -585,13 +776,13 @@
             const message = snapshot.val();
             const messageKey = snapshot.key;
             
-            // Check voor dubbele berichten
             if (loadedMessages.has(messageKey)) return;
             loadedMessages.add(messageKey);
             
-            // Voeg bericht toe aan chat (zowel eigen als andermans berichten)
-            const isOwnMessage = (message.userId === myUserId);
-            addMessage(message.text, isOwnMessage, message.username, message.timestamp);
+            // Alleen toevoegen als het niet van onszelf is (eigen bericht is al toegevoegd)
+            if (message.userId !== myUserId) {
+                addMessage(message.text, false, message.username, message.timestamp);
+            }
         });
     }
     
@@ -603,7 +794,6 @@
             const onlineUsers = [];
             
             for (const [id, data] of Object.entries(users)) {
-                // Check of gebruiker online is (laatste 30 seconden)
                 const lastSeen = data.lastSeen;
                 const isOnline = lastSeen && (now - lastSeen < 30000);
                 
@@ -612,7 +802,6 @@
                 }
             }
             
-            // Update UI
             onlineCountSpan.textContent = onlineUsers.length;
             
             if (onlineUsers.length === 0) {
@@ -627,7 +816,6 @@
             }
         });
         
-        // Verwijder offline gebruikers (ouder dan 30 seconden)
         setInterval(() => {
             const cutoff = Date.now() - 30000;
             usersRef.once('value', (snapshot) => {
@@ -653,7 +841,6 @@
                 }
             }
             
-            // Verwijder oude typing indicators
             const oldIndicator = document.getElementById('global-typing-indicator');
             if (oldIndicator) oldIndicator.remove();
             
@@ -723,23 +910,8 @@
         const textSpan = document.createElement('div');
         textSpan.textContent = text;
         
-        const timeSpan = document.createElement('div');
-        timeSpan.className = 'message-time';
-        if (timestamp) {
-            const date = new Date(timestamp);
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            timeSpan.textContent = `${hours}:${minutes}`;
-        } else {
-            const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            timeSpan.textContent = `${hours}:${minutes}`;
-        }
-        
         messageDiv.appendChild(infoSpan);
         messageDiv.appendChild(textSpan);
-        messageDiv.appendChild(timeSpan);
         
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -752,7 +924,6 @@
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         
-        // Verwijder na 5 seconden
         setTimeout(() => {
             if (messageDiv.remove) messageDiv.remove();
         }, 5000);
@@ -762,6 +933,18 @@
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
+    }
+    
+    // ========== SIDEBAR INKLAPPEN ==========
+    function toggleSidebar() {
+        sidebarCollapsed = !sidebarCollapsed;
+        if (sidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            toggleSidebarBtn.textContent = '☰ Menu';
+        } else {
+            sidebar.classList.remove('collapsed');
+            toggleSidebarBtn.textContent = '☰ Zijmenu';
+        }
     }
     
     // ========== VERBINDINGSSTATUS ==========
@@ -779,8 +962,6 @@
                 connectionLabel.innerHTML = '❌ Offline';
                 if (statusDot) statusDot.style.backgroundColor = '#ff3b30';
                 addSystemMessage('⚠️ Geen verbinding. Berichten worden niet verzonden.');
-                messageInput.disabled = true;
-                sendBtn.disabled = true;
             }
         });
     }
@@ -795,6 +976,10 @@
         setupConnectionStatus();
         setupUserListener();
         setupMessageListener();
+        
+        // Oude berichten opschonen (elke dag)
+        cleanOldMessages();
+        setInterval(cleanOldMessages, 24 * 60 * 60 * 1000);
         
         messageInput.addEventListener('input', () => {
             if (myUsername && messageInput.value.trim().length > 0) {
@@ -817,13 +1002,18 @@
         });
         
         document.getElementById('disclaimerBtn').addEventListener('click', showDisclaimer);
+        toggleSidebarBtn.addEventListener('click', toggleSidebar);
         
-        // Enter in username field
-        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') setUsername();
-        });
-        
-        addSystemMessage('💬 Welkom bij GlobalChat! Stel je gebruikersnaam in om te beginnen.');
+        // Check of er een naam is opgeslagen
+        const hasName = loadUsernameFromStorage();
+        if (!hasName) {
+            showModal();
+        } else {
+            enableChat();
+            registerUser();
+            setupTypingListener();
+            addSystemMessage(`👋 Welkom terug ${myUsername}!`);
+        }
     }
     
     // Start alles
