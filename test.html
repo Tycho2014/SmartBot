@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SmartBot Secure - Jouw privé AI-assistent</title>
-    <!-- Firebase SDK's (Compat voor Auth + Firestore) -->
+    <title>SmartBot - Jouw Apparaat Chat</title>
+    <!-- Firebase SDK's (Compat voor Database) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, 'Inter', sans-serif;
+            font-family: 'Segoe UI', system-ui, 'Inter', -apple-system, sans-serif;
         }
 
-        /* Volledige breedte, volledige hoogte */
+        /* Volledige breedte en hoogte, geen restricties */
         body {
             background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
@@ -28,7 +27,7 @@
             margin: 0;
         }
 
-        /* Main container: breedte = 100vw, geen max-width restrictie */
+        /* App container: 100vw / 100vh */
         .app-wrapper {
             width: 100vw;
             height: 100vh;
@@ -40,7 +39,7 @@
             border-radius: 0;
         }
 
-        /* Ingelogd scherm: flex kolom */
+        /* Hoofd chat structuur */
         .chat-main {
             display: flex;
             flex-direction: column;
@@ -49,7 +48,7 @@
             background: #ffffff;
         }
 
-        /* Header modern */
+        /* Header met apparaat-ID */
         .chat-header {
             background: linear-gradient(95deg, #0f2b3d, #1b4a6e);
             color: white;
@@ -59,7 +58,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .brand {
@@ -70,13 +69,13 @@
 
         .brand-icon {
             background: white;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.7rem;
+            font-size: 1.8rem;
             color: #1b4a6e;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
@@ -87,34 +86,33 @@
             letter-spacing: -0.3px;
         }
 
-        .user-info {
+        .device-info {
             background: rgba(255,255,255,0.18);
-            padding: 6px 14px;
+            padding: 6px 18px;
             border-radius: 40px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 0.85rem;
+            gap: 8px;
+            font-size: 0.8rem;
             font-weight: 500;
+            font-family: monospace;
         }
 
-        .logout-btn {
-            background: #ef4444;
-            border: none;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
+        .status-badge {
+            background: #10b981;
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            animation: pulse 1.8s infinite;
         }
 
-        .logout-btn:hover {
-            background: #dc2626;
-            transform: scale(0.97);
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
         }
 
-        /* Chat berichten container - flex-grow vult rest */
+        /* Chat berichten gebied - flex groeit */
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -125,12 +123,12 @@
             background: #f1f5f9;
         }
 
-        /* Berichten styling breed */
+        /* Berichten styling (breed) */
         .message {
             max-width: 75%;
             padding: 12px 18px;
             border-radius: 26px;
-            line-height: 1.4;
+            line-height: 1.45;
             position: relative;
             word-break: break-word;
             font-size: 0.95rem;
@@ -181,7 +179,7 @@
             align-items: center;
         }
 
-        /* invoerveld - volledige breedte */
+        /* Input bar - volledige breedte */
         .input-bar {
             background: white;
             border-top: 1px solid #e2e8f0;
@@ -226,7 +224,7 @@
             transform: scale(0.96);
         }
 
-        /* statistieken compact */
+        /* Statistieken + geleerde woorden */
         .stats-footer {
             background: #eef2ff;
             padding: 0.6rem 2rem;
@@ -242,76 +240,47 @@
 
         .stat-badge {
             background: #ffffffaa;
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 40px;
         }
 
-        /* login scherm - ook full width */
-        .login-container {
-            width: 100vw;
-            height: 100vh;
+        .memory-chip-container {
+            background: #f9fafb;
+            padding: 8px 20px;
+            font-size: 0.75rem;
+            border-top: 1px solid #e2e8f0;
             display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
             align-items: center;
-            justify-content: center;
-            background: linear-gradient(130deg, #0b2b3b, #1f5e8c);
+            min-height: 48px;
         }
 
-        .login-card {
-            background: rgba(255,255,255,0.96);
-            padding: 2rem 2rem;
-            border-radius: 2rem;
-            width: 90%;
-            max-width: 420px;
-            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        .login-card h2 {
-            margin-bottom: 1.5rem;
-            color: #0f2b3d;
-        }
-
-        .login-card input {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 10px 0;
-            border: 1px solid #cbd5e1;
-            border-radius: 60px;
-            font-size: 1rem;
-        }
-
-        .login-card button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 60px;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-top: 12px;
-            cursor: pointer;
-        }
-
-        .login-card .error-msg {
-            color: #dc2626;
-            margin-top: 12px;
-            font-size: 0.85rem;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* leermodule: woordenlijst klein */
         .memory-chip {
             background: #e0e7ff;
             display: inline-block;
             padding: 4px 12px;
             border-radius: 32px;
             font-size: 0.7rem;
-            margin: 4px 6px 4px 0;
+            font-weight: 500;
             color: #1e3a8a;
+            transition: 0.1s;
+        }
+
+        .reset-memory {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .reset-memory:hover {
+            background: #dc2626;
         }
 
         @media (max-width: 680px) {
@@ -320,64 +289,51 @@
             .input-bar { padding: 0.8rem 1rem; }
             .stats-footer { padding: 0.5rem 1rem; }
             .chat-header { padding: 0.8rem 1rem; }
+            .memory-chip-container { padding: 8px 12px; }
         }
     </style>
 </head>
 <body>
-
-<!-- LOGIN SCHERM -->
-<div id="loginScreen" class="login-container">
-    <div class="login-card">
-        <div style="font-size: 3rem;">🔐</div>
-        <h2>SmartBot · Jouw Chat</h2>
-        <p style="margin-bottom: 16px; color:#475569;">Login of registreer</p>
-        <input type="email" id="loginEmail" placeholder="E-mailadres" autocomplete="email">
-        <input type="password" id="loginPassword" placeholder="Wachtwoord" autocomplete="current-password">
-        <button id="loginBtn">Inloggen / Registreren</button>
-        <div id="loginError" class="error-msg"></div>
-        <p style="margin-top: 18px; font-size:0.7rem; color:#6c757d;">Je chats worden privé opgeslagen per e-mailadres.</p>
-    </div>
-</div>
-
-<!-- HOOFD CHAT INTERFACE (full width) -->
-<div id="chatApp" class="app-wrapper hidden">
+<div class="app-wrapper" id="appWrapper">
     <div class="chat-main">
         <div class="chat-header">
             <div class="brand">
                 <div class="brand-icon">🤖</div>
-                <h2>SmartBot · Privé</h2>
+                <h2>SmartBot · Lokaal apparaat</h2>
             </div>
-            <div class="user-info">
-                <span>👤 <span id="userEmailDisplay">gebruiker</span></span>
-                <button id="logoutHeaderBtn" class="logout-btn">Uitloggen</button>
+            <div class="device-info">
+                <span class="status-badge"></span>
+                <span id="deviceIdLabel">apparaat-id laden...</span>
             </div>
         </div>
 
         <div class="messages-area" id="messagesContainer">
             <div class="message bot-message">
                 <div class="category-badge bot-category">📌 systeem</div>
-                Hallo! Dit is jouw privéomgeving. Alleen jij kunt jouw chats inzien. Stel vragen, chat gezellig!
+                Hallo! Deze chat wordt opgeslagen in de cloud, maar is alleen gekoppeld aan dit apparaat.<br>
+                Jouw gesprekken zijn privé en kunnen alleen op dit apparaat worden geopend. Veel plezier!
             </div>
         </div>
 
         <div class="input-bar">
-            <input type="text" id="userInput" placeholder="Typ je bericht... (wordt opgeslagen in jouw persoonlijke bestand)">
+            <input type="text" id="userInput" placeholder="Typ je bericht... (chats worden veilig bewaard in Firebase)">
             <button id="sendBtn">➤</button>
         </div>
 
         <div class="stats-footer">
-            <div class="stat-badge">📨 Berichten: <span id="totalMsgCount">0</span></div>
-            <div class="stat-badge">📚 Geleerde woorden: <span id="totalWordsCount">0</span></div>
-            <div class="stat-badge">🧠 Jouw context: <span id="contextHint">actief</span></div>
+            <div class="stat-badge">💬 Berichten: <span id="totalMsgCount">0</span></div>
+            <div class="stat-badge">📖 Geleerde woorden: <span id="totalWordsCount">0</span></div>
+            <div class="stat-badge">🧠 Slimme context</div>
         </div>
-        <div id="memoryWordsContainer" style="background:#f9fafb; padding: 8px 20px; font-size:0.75rem; border-top:1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 6px;">
-            <!-- woorden chips komen hier dynamisch -->
+        <div class="memory-chip-container" id="memoryContainer">
+            <span style="color:#64748b;">✨ Geheugen: woorden die ik leer</span>
+            <button id="clearMemoryBtn" class="reset-memory">Wis mijn apparaat-geheugen</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ---------- FIREBASE CONFIG (zelfde project, maar met Auth + Firestore) ----------
+    // ================= FIREBASE CONFIG (Realtime Database) =================
     const firebaseConfig = {
         apiKey: "AIzaSyAVSuvwfb2K9HlkgmBhX0wb6qIAh7zG6G68",
         authDomain: "smartbot-e74c8.firebaseapp.com",
@@ -388,45 +344,57 @@
         appId: "1:763220149613:web:ca15bf820a309ff7adc664"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const dbFirestore = firebase.firestore();
+    const db = firebase.database();
 
-    // ---------- GLOBALE VARIABELEN ----------
-    let currentUser = null;          // ingelogde gebruiker
-    let currentUserEmail = null;
-    let userDocRef = null;           // Firestore document referentie (bestand: email)
-    
-    // chat data (in-memory mirror)
-    let chatHistory = [];             // array van { role: "user"|"bot", text: string, category: string, timestamp }
-    let learnedWords = [];            // [{ word: string, category: string }]
+    // ========== UNIEKE APPARAAT ID (opgeslagen in localStorage, persistent voor dit apparaat) ==========
+    function getDeviceId() {
+        let deviceId = localStorage.getItem('smartbot_device_unique_id');
+        if (!deviceId) {
+            deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substring(2, 12) + '_' + navigator.userAgent.length;
+            localStorage.setItem('smartbot_device_unique_id', deviceId);
+        }
+        return deviceId;
+    }
+    const DEVICE_ID = getDeviceId();
+    // Firebase pad: /deviceChats/{DEVICE_ID}/ 
+    const deviceRootRef = db.ref('deviceChats/' + DEVICE_ID);
+    // sub paden: chatHistory, learnedWords, userPhrases, stats
+    const historyRef = deviceRootRef.child('chatHistory');
+    const learnedWordsRef = deviceRootRef.child('learnedWords');
+    const userPhrasesRef = deviceRootRef.child('userPhrases');
+    const statsRef = deviceRootRef.child('stats');
+
+    // ========== Globale data ==========
+    let chatHistory = [];           // [{ role, text, category, timestamp }]
+    let learnedWords = [];          // [{ word, category }]
+    let userPhrases = {             // zinnen per categorie die gebruiker ooit stuurde (voor slimme replies)
+        begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
+    };
     let totalMessages = 0;
 
     // DOM elementen
-    const loginScreen = document.getElementById('loginScreen');
-    const chatApp = document.getElementById('chatApp');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPassword = document.getElementById('loginPassword');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginError = document.getElementById('loginError');
-    const userEmailDisplay = document.getElementById('userEmailDisplay');
-    const logoutHeaderBtn = document.getElementById('logoutHeaderBtn');
     const messagesContainer = document.getElementById('messagesContainer');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
     const totalMsgCountSpan = document.getElementById('totalMsgCount');
     const totalWordsCountSpan = document.getElementById('totalWordsCount');
-    const memoryWordsContainer = document.getElementById('memoryWordsContainer');
+    const memoryContainer = document.getElementById('memoryContainer');
+    const clearMemoryBtn = document.getElementById('clearMemoryBtn');
+    const deviceIdLabel = document.getElementById('deviceIdLabel');
 
-    // ---------- CATEGORISATIE & WOORD LEREN (zelfde slimme logica) ----------
+    // Toon verkort device-id
+    deviceIdLabel.innerText = DEVICE_ID.slice(0, 14) + '...';
+
+    // ========== Categorisatie & leerlogica ==========
     const categoryKeywords = {
-        begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","goedendag"],
-        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","tering"],
-        compliment: ["mooi","leuk","geweldig","fantastisch","super","knap","slim","grappig","topper"],
-        tip: ["tip","advies","suggestie","idee","aanrader","probeer","als je"],
-        grap: ["grap","grappig","lachen","mop","humor","lach","haha"],
-        verdrietig: ["verdrietig","triest","somber","depri","huilen","zielig","balen"],
-        vraag: ["waarom","hoe","wat","wanneer","wie","welke","weet je","vertel"],
-        antwoord: ["omdat","daarom","dus","want","inderdaad","precies"]
+        begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","goedendag","hee"],
+        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","tering","vervelend","haat"],
+        compliment: ["mooi","leuk","geweldig","fantastisch","super","knap","slim","grappig","topper","geweldig"],
+        tip: ["tip","advies","suggestie","idee","aanrader","probeer","als je","beste manier"],
+        grap: ["grap","grappig","lachen","mop","humor","lach","haha","hihi"],
+        verdrietig: ["verdrietig","triest","somber","depri","huilen","zielig","balen","aangeslagen"],
+        vraag: ["waarom","hoe","wat","wanneer","wie","welke","weet je","vertel","leg uit"],
+        antwoord: ["omdat","daarom","dus","want","inderdaad","precies","juist"]
     };
 
     function categorizeMessage(msg) {
@@ -439,106 +407,143 @@
         return "random";
     }
 
-    const commonWords = ["de","het","een","en","of","maar","dan","om","naar","voor","met","zonder","door","over","onder","boven","tussen","naast","achter","bij","sinds","tot","van","aan","in","uit","op","te","is","was","zijn","niet","geen","ze","we","je","jij","u","hij","zij","het","mijn","jouw","zijn","haar","ons","jullie","hun","die","dat","deze","wat","wie","waar","daar","hier","ook","nog","al","heel","zeer"];
+    const commonWords = ["de","het","een","en","of","maar","dan","om","naar","voor","met","zonder","door","over","onder","boven","tussen","naast","achter","bij","sinds","tot","van","aan","in","uit","op","te","is","was","zijn","niet","geen","ze","we","je","jij","u","hij","zij","het","mijn","jouw","zijn","haar","ons","jullie","hun","die","dat","deze","wat","wie","waar","daar","hier","ook","nog","al","heel","zeer","ben","heb","dan","eens","weer","toch","maar"];
     function isCommonWord(word) { return commonWords.includes(word.toLowerCase()); }
 
-    // Leer woorden uit bericht & bewaar in Firestore (samen met berichten)
+    // Leer nieuwe woorden uit bericht
     async function learnFromMessage(msg, category) {
         const words = msg.toLowerCase().split(/\s+/);
-        let newAdded = 0;
+        let newCount = 0;
         for (let w of words) {
             if (w.length > 2 && !isCommonWord(w)) {
                 const exists = learnedWords.some(item => item.word === w);
                 if (!exists) {
                     learnedWords.push({ word: w, category: category });
-                    newAdded++;
+                    newCount++;
                 }
             }
         }
-        if (newAdded > 0) {
-            await saveLearnedWordsToFirestore();
-            updateWordChipsUI();
+        if (newCount > 0) {
+            await saveLearnedWords();
+            updateMemoryUI();
         }
         updateStatsUI();
     }
 
-    // Genereer antwoord (gebruik eigen leerzinnen van deze gebruiker + learnedWords)
-    // We slaan per gebruiker zijn eigen 'userPhrases' op in firestore (zinnen die hij ooit stuurde, per categorie)
-    let userPhrasesMap = {   // { categorie: [zinnen] }
-        begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
-    };
+    // Bewaar gebruikerszin in userPhrases (voor antwoord prioriteit)
+    async function storeUserPhrase(msg, category) {
+        if (!userPhrases[category]) userPhrases[category] = [];
+        if (!userPhrases[category].includes(msg)) {
+            userPhrases[category].push(msg);
+            await userPhrasesRef.set(userPhrases);
+        }
+    }
 
-    async function loadUserPhrasesFromFirestore() {
-        if (!userDocRef) return;
-        const docSnap = await userDocRef.get();
-        if (docSnap.exists) {
-            const data = docSnap.data();
-            if (data.userPhrases) userPhrasesMap = data.userPhrases;
-            if (data.learnedWords) learnedWords = data.learnedWords || [];
-            if (data.chatHistory) chatHistory = data.chatHistory || [];
-            if (data.totalMessages) totalMessages = data.totalMessages || 0;
-            // sync lokale counters
-            updateStatsUI();
-            updateWordChipsUI();
-            // herstel chat history in UI
-            renderChatHistoryFromMemory();
+    // Genereer antwoord: prioriteit aan eerdere zinnen van deze gebruiker (apparaat-specifiek)
+    function generateReply(userMsg, category) {
+        const phrasesForCat = userPhrases[category] || [];
+        // 70% kans om een eerdere zin uit dezelfde categorie te gebruiken (als die bestaan)
+        if (phrasesForCat.length > 0 && Math.random() < 0.7) {
+            const randomPhrase = phrasesForCat[Math.floor(Math.random() * phrasesForCat.length)];
+            return randomPhrase;
+        }
+        // Gebruik geleerde woorden met sjablonen
+        if (learnedWords.length > 0 && Math.random() < 0.6) {
+            const randomEntry = learnedWords[Math.floor(Math.random() * learnedWords.length)];
+            const word = randomEntry.word;
+            const templates = {
+                begroeting: [`Hallo! Jij bent een echte ${word}`, `Hey ${word}, wat leuk je te zien!`, `Goedendag ${word} topper!`],
+                boos: [`Rustig aan met dat ${word} gedrag!`, `Niet zo ${word} doen!`, `Je lijkt wel een ${word}`],
+                compliment: [`Wat een ${word} ben jij!`, `Jij bent echt ontzettend ${word}!`, `Super ${word} van je!`],
+                tip: [`Tip: wees niet bang om ${word} te gebruiken`, `Probeer ${word} eens vaker`, `Advies: focus op ${word}`],
+                grap: [`Waarom liep de ${word} over straat? Geen idee maar het was grappig!`, `Haha, ${word} is humor!`],
+                verdrietig: [`Soms voel ik me ook ${word}`, `Het is oké om ${word} te zijn`],
+                vraag: [`Waarom denk je aan ${word}?`, `Wat betekent ${word} voor jou?`],
+                antwoord: [`Het antwoord is simpel: ${word}`, `Ik geloof dat ${word} de sleutel is`],
+                random: [`${word} is een prachtig woord!`, `Ik leer graag over ${word}`]
+            };
+            const tlist = templates[category] || templates.random;
+            return tlist[Math.floor(Math.random() * tlist.length)];
+        }
+        const fallbacks = [
+            "Interessant! Vertel me meer.", 
+            "Daar moet ik even over nadenken...", 
+            "Wat leuk dat je dit deelt!", 
+            "Ga zo door, ik leer elke dag van jou.",
+            "Kun je dat verder uitleggen?",
+            "Ik vind het fijn om met jou te chatten!"
+        ];
+        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
+
+    // ========== FIREBASE OPSLAG & SYNC (per apparaat) ==========
+    async function saveChatHistory() {
+        await historyRef.set(chatHistory);
+    }
+    async function saveLearnedWords() {
+        await learnedWordsRef.set(learnedWords);
+        await updateStatsInFirebase();
+    }
+    async function saveStats() {
+        await statsRef.set({ totalMessages: totalMessages, totalLearned: learnedWords.length });
+    }
+    async function updateStatsInFirebase() {
+        await statsRef.set({ totalMessages: totalMessages, totalLearned: learnedWords.length });
+    }
+
+    // Volledige data laden vanuit Firebase (alleen dit apparaat)
+    async function loadAllData() {
+        // Laad chatHistory
+        const historySnap = await historyRef.once('value');
+        if (historySnap.exists()) {
+            chatHistory = historySnap.val();
+            if (!Array.isArray(chatHistory)) chatHistory = [];
         } else {
-            // Nieuw document aanmaken met lege structuur
-            await userDocRef.set({
-                email: currentUserEmail,
-                userPhrases: userPhrasesMap,
-                learnedWords: [],
-                chatHistory: [],
-                totalMessages: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            learnedWords = [];
             chatHistory = [];
-            totalMessages = 0;
-            userPhrasesMap = { begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: [] };
-            updateStatsUI();
-            updateWordChipsUI();
-            messagesContainer.innerHTML = '';
-            addBotMessageSystem("📁 Nieuw privébestand aangemaakt! Je chats worden hier opgeslagen.", "systeem");
         }
-    }
-
-    async function saveUserPhrasesToFirestore() {
-        if (!userDocRef) return;
-        await userDocRef.update({ userPhrases: userPhrasesMap });
-    }
-
-    async function saveLearnedWordsToFirestore() {
-        if (!userDocRef) return;
-        await userDocRef.update({ learnedWords: learnedWords });
-    }
-
-    async function saveChatHistoryToFirestore() {
-        if (!userDocRef) return;
-        await userDocRef.update({ chatHistory: chatHistory, totalMessages: totalMessages });
-    }
-
-    // Voeg bericht toe aan history & Firestore
-    async function addMessageToHistory(role, text, category) {
-        const newMsg = { role, text, category, timestamp: Date.now() };
-        chatHistory.push(newMsg);
-        totalMessages = chatHistory.filter(m => m.role === 'user').length;
-        await saveChatHistoryToFirestore();
+        // Laad learnedWords
+        const wordsSnap = await learnedWordsRef.once('value');
+        if (wordsSnap.exists()) {
+            learnedWords = wordsSnap.val();
+            if (!Array.isArray(learnedWords)) learnedWords = [];
+        } else {
+            learnedWords = [];
+        }
+        // Laad userPhrases
+        const phrasesSnap = await userPhrasesRef.once('value');
+        if (phrasesSnap.exists()) {
+            userPhrases = phrasesSnap.val();
+            // verzeker alle categorieën
+            const defaultCats = ["begroeting","boos","compliment","tip","grap","verdrietig","vraag","antwoord","random"];
+            defaultCats.forEach(cat => { if (!userPhrases[cat]) userPhrases[cat] = []; });
+        } else {
+            userPhrases = { begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: [] };
+            await userPhrasesRef.set(userPhrases);
+        }
+        // Laad stats
+        const statsSnap = await statsRef.once('value');
+        if (statsSnap.exists() && statsSnap.val().totalMessages !== undefined) {
+            totalMessages = statsSnap.val().totalMessages;
+        } else {
+            totalMessages = chatHistory.filter(m => m.role === 'user').length;
+            await saveStats();
+        }
         updateStatsUI();
+        updateMemoryUI();
+        renderFullChatHistory();
     }
 
-    // Render volledige historie bij laden
-    function renderChatHistoryFromMemory() {
+    // Render geschiedenis in de juiste volgorde
+    function renderFullChatHistory() {
         messagesContainer.innerHTML = '';
-        if (chatHistory.length === 0) {
-            addBotMessageSystem("Welkom! Jouw persoonlijke chatruimte is klaar. Stuur een bericht!", "systeem");
-            return;
-        }
-        for (let msg of chatHistory) {
-            if (msg.role === 'user') {
-                appendMessageElement('user', msg.text, msg.category);
-            } else {
-                appendMessageElement('bot', msg.text, msg.category);
+        if (!chatHistory.length) {
+            const welcomeMsg = document.createElement('div');
+            welcomeMsg.className = 'message bot-message';
+            welcomeMsg.innerHTML = `<div class="category-badge bot-category">📌 systeem</div>Jouw apparaat-chat is klaar! Berichten worden opgeslagen in Firebase en alleen dit apparaat kan ze lezen.`;
+            messagesContainer.appendChild(welcomeMsg);
+        } else {
+            for (let msg of chatHistory) {
+                appendMessageElement(msg.role, msg.text, msg.category);
             }
         }
         scrollToBottom();
@@ -553,16 +558,45 @@
         scrollToBottom();
     }
 
-    function addUserMessageUI(text, category) {
-        appendMessageElement('user', text, category);
+    function addUserMessageUI(text, category) { appendMessageElement('user', text, category); }
+    function addBotMessageUI(text, category) { appendMessageElement('bot', text, category); }
+
+    async function addMessageToHistory(role, text, category) {
+        const newMsg = { role, text, category, timestamp: Date.now() };
+        chatHistory.push(newMsg);
+        if (role === 'user') totalMessages = chatHistory.filter(m => m.role === 'user').length;
+        await saveChatHistory();
+        await saveStats();
+        updateStatsUI();
     }
 
-    function addBotMessageUI(text, category) {
-        appendMessageElement('bot', text, category);
+    function updateStatsUI() {
+        totalMsgCountSpan.innerText = totalMessages;
+        totalWordsCountSpan.innerText = learnedWords.length;
     }
 
-    function addBotMessageSystem(text, category) {
-        appendMessageElement('bot', text, category);
+    function updateMemoryUI() {
+        // Wis alle chips behalve de resetknop (die behouden we)
+        const chips = memoryContainer.querySelectorAll('.memory-chip:not(.reset-memory)');
+        chips.forEach(chip => chip.remove());
+        // voeg geleerde woorden toe
+        if (learnedWords.length === 0) {
+            const emptyHint = document.createElement('span');
+            emptyHint.className = 'memory-chip-placeholder';
+            emptyHint.style.color = '#64748b';
+            emptyHint.innerText = '📘 Nog geen woorden geleerd. Typ iets!';
+            emptyHint.style.background = 'transparent';
+            memoryContainer.insertBefore(emptyHint, clearMemoryBtn);
+            setTimeout(() => { if(emptyHint.parentNode) emptyHint.remove(); }, 2000);
+        } else {
+            const recent = [...learnedWords].reverse().slice(0, 28);
+            for (let w of recent) {
+                const chip = document.createElement('span');
+                chip.className = 'memory-chip';
+                chip.innerText = `${w.word} (${w.category})`;
+                memoryContainer.insertBefore(chip, clearMemoryBtn);
+            }
+        }
     }
 
     function escapeHtml(str) {
@@ -575,187 +609,83 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    function updateStatsUI() {
-        totalMsgCountSpan.innerText = totalMessages;
-        totalWordsCountSpan.innerText = learnedWords.length;
-    }
-
-    function updateWordChipsUI() {
-        memoryWordsContainer.innerHTML = '';
-        if (learnedWords.length === 0) {
-            memoryWordsContainer.innerHTML = '<span style="color:#64748b;">✨ Nog geen woorden geleerd, typ iets nieuws!</span>';
-            return;
-        }
-        const recent = [...learnedWords].reverse().slice(0, 24);
-        recent.forEach(w => {
-            const chip = document.createElement('span');
-            chip.className = 'memory-chip';
-            chip.innerText = `${w.word} (${w.category})`;
-            memoryWordsContainer.appendChild(chip);
-        });
-    }
-
-    // Antwoord genereren met gebruiker zijn eigen zinnen prioriteit
-    function generateReply(userMsg, category) {
-        const phrasesForCat = userPhrasesMap[category] || [];
-        // 70% kans om een eerdere zin van DEZE gebruiker uit dezelfde categorie te gebruiken
-        if (phrasesForCat.length > 0 && Math.random() < 0.7) {
-            const randomPhrase = phrasesForCat[Math.floor(Math.random() * phrasesForCat.length)];
-            return randomPhrase;
-        }
-        // anders: gebruik geleerde woorden
-        if (learnedWords.length > 0 && Math.random() < 0.6) {
-            const randomEntry = learnedWords[Math.floor(Math.random() * learnedWords.length)];
-            const word = randomEntry.word;
-            const templates = {
-                begroeting: [`Hallo! Jij bent een echte ${word}!`, `Hey ${word}, gezellig!`, `Goedemorgen ${word}!`],
-                boos: [`Niet zo ${word} doen!`, `Jij bent zelf een ${word}`, `Rustig aan, ${word}!`],
-                compliment: [`Wat een ${word} ben jij!`, `Jij bent echt ${word}`, `Super ${word}!`],
-                tip: [`Mijn tip: gebruik vaker ${word}`, `Probeer ${word} eens`, `Advies: wees ${word}`],
-                grap: [`Waarom liep de ${word} over straat? Geen idee!`, `Haha, ${word} is grappig!`],
-                verdrietig: [`Ik voel me soms ${word}`, `Best wel ${word} vandaag`],
-                vraag: [`Waarom is ${word} zo interessant?`, `Wat vind jij van ${word}?`],
-                antwoord: [`Het antwoord is simpel: ${word}`, `Zeker weten: ${word}`],
-                random: [`${word} is een mooi woord!`, `Ik denk aan ${word}`]
-            };
-            const tlist = templates[category] || templates.random;
-            return tlist[Math.floor(Math.random() * tlist.length)];
-        }
-        const fallbacks = ["Vertel meer!", "Interessant! Ga door.", "Daar moet ik over nadenken.", "Wat leuk!", "Ik leer steeds van jouw woorden."];
-        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-    }
-
-    // Opslaan van gebruikerszin in eigen 'userPhrasesMap' (leren van zinnen)
-    async function storeUserPhrase(msg, category) {
-        if (!userPhrasesMap[category]) userPhrasesMap[category] = [];
-        if (!userPhrasesMap[category].includes(msg)) {
-            userPhrasesMap[category].push(msg);
-            await saveUserPhrasesToFirestore();
+    // Wis ALLE apparaatdata (chats, woorden, zinnen)
+    async function wipeDeviceMemory() {
+        if (confirm("⚠️ WAARSCHUWING! Dit wist ALLE chatgeschiedenis, geleerde woorden en zinnen voor DIT apparaat. Dit kan niet ongedaan worden gemaakt. Weet je het zeker?")) {
+            // leeg alle referenties
+            await historyRef.set([]);
+            await learnedWordsRef.set([]);
+            await userPhrasesRef.set({
+                begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: []
+            });
+            await statsRef.set({ totalMessages: 0, totalLearned: 0 });
+            // reset lokale state
+            chatHistory = [];
+            learnedWords = [];
+            userPhrases = { begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: [] };
+            totalMessages = 0;
+            updateStatsUI();
+            updateMemoryUI();
+            renderFullChatHistory();
+            addBotMessageUI("🧹 Alle apparaat-data is gewist! Je begint met een schone lei. Typ iets om te chatten.", "systeem");
         }
     }
 
-    // Verwerk nieuw bericht
-    async function onSendMessage() {
+    // ========== BERICHTVERWERKING ==========
+    async function handleUserMessage() {
         const text = userInput.value.trim();
         if (!text) return;
         const category = categorizeMessage(text);
-        // 1. Voeg toe aan UI en geschiedenis
         addUserMessageUI(text, category);
         await addMessageToHistory('user', text, category);
-        // 2. Leer van bericht (woorden + zinnen)
+        
+        // Leer van het bericht (woorden + zinnen)
         await storeUserPhrase(text, category);
         await learnFromMessage(text, category);
         
         userInput.value = '';
-        // Toon denk-indicator
+        
+        // Denk indicator
         const thinkDiv = document.createElement('div');
         thinkDiv.className = 'thinking';
         thinkDiv.id = 'tempThink';
-        thinkDiv.innerHTML = `🤔 SmartBot denkt na <span>⚡</span>`;
+        thinkDiv.innerHTML = `🤔 SmartBot denkt na...`;
         messagesContainer.appendChild(thinkDiv);
         scrollToBottom();
         
         setTimeout(async () => {
-            if (document.getElementById('tempThink')) document.getElementById('tempThink').remove();
+            const tempThink = document.getElementById('tempThink');
+            if (tempThink) tempThink.remove();
             const reply = generateReply(text, category);
             addBotMessageUI(reply, category);
             await addMessageToHistory('bot', reply, category);
-            // Na genereren nog stats updaten
             updateStatsUI();
-        }, 600 + Math.random() * 600);
+        }, 700 + Math.random() * 700);
     }
 
-    // ---------- AUTH & INIT ----------
-    async function handleLoginOrRegister() {
-        const email = loginEmail.value.trim();
-        const password = loginPassword.value.trim();
-        if (!email || !password) {
-            loginError.innerText = "Vul e-mail en wachtwoord in.";
-            return;
-        }
-        loginError.innerText = "";
-        try {
-            // probeer sign in
-            const userCred = await auth.signInWithEmailAndPassword(email, password);
-            currentUser = userCred.user;
-            currentUserEmail = currentUser.email;
-            setupUserChat(currentUserEmail);
-        } catch (err) {
-            if (err.code === 'auth/user-not-found') {
-                // registreer nieuw account
-                try {
-                    const userCred = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = userCred.user;
-                    currentUserEmail = currentUser.email;
-                    setupUserChat(currentUserEmail);
-                } catch (regErr) {
-                    loginError.innerText = "Registratie mislukt: " + regErr.message;
-                }
+    // ========== INIT & EVENT LISTENERS ==========
+    window.onload = async () => {
+        await loadAllData();
+        sendBtn.addEventListener('click', handleUserMessage);
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleUserMessage(); });
+        clearMemoryBtn.addEventListener('click', wipeDeviceMemory);
+        // Verbindingsstatus (optioneel)
+        const connectedRef = db.ref('.info/connected');
+        connectedRef.on('value', (snap) => {
+            const statusSpan = document.querySelector('.status-badge');
+            if (snap.val()) {
+                statusSpan.style.background = '#10b981';
+                deviceIdLabel.style.opacity = '1';
             } else {
-                loginError.innerText = "Fout: " + err.message;
+                statusSpan.style.background = '#ef4444';
+                deviceIdLabel.style.opacity = '0.7';
             }
+        });
+        // Welkomstbericht tonen als er geen historie is
+        if (chatHistory.length === 0) {
+            addBotMessageUI("👋 Je berichten worden automatisch opgeslagen in de cloud, maar alleen dit apparaat kan ze bekijken. Stel gerust vragen!", "begroeting");
         }
-    }
-
-    async function setupUserChat(email) {
-        // Firestore document reference: bestand met de naam van de email (veilig)
-        userDocRef = dbFirestore.collection('userChats').doc(email);
-        // Reset lokale state
-        chatHistory = [];
-        learnedWords = [];
-        totalMessages = 0;
-        userPhrasesMap = { begroeting: [], boos: [], compliment: [], tip: [], grap: [], verdrietig: [], vraag: [], antwoord: [], random: [] };
-        
-        await loadUserPhrasesFromFirestore();  // laadt history, learnedWords, phrases
-        updateWordChipsUI();
-        updateStatsUI();
-        
-        userEmailDisplay.innerText = email;
-        loginScreen.classList.add('hidden');
-        chatApp.classList.remove('hidden');
-    }
-
-    async function logout() {
-        await auth.signOut();
-        currentUser = null;
-        currentUserEmail = null;
-        userDocRef = null;
-        chatHistory = [];
-        learnedWords = [];
-        // Reset UI naar login
-        loginScreen.classList.remove('hidden');
-        chatApp.classList.add('hidden');
-        loginEmail.value = '';
-        loginPassword.value = '';
-        loginError.innerText = '';
-        messagesContainer.innerHTML = '';
-    }
-
-    // Check of gebruiker al ingelogd was (persistentie)
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            currentUserEmail = user.email;
-            setupUserChat(currentUserEmail);
-        } else {
-            if (chatApp && !chatApp.classList.contains('hidden')) {
-                chatApp.classList.add('hidden');
-            }
-            loginScreen.classList.remove('hidden');
-        }
-    });
-
-    // Event listeners
-    loginBtn.addEventListener('click', handleLoginOrRegister);
-    logoutHeaderBtn.addEventListener('click', logout);
-    sendBtn.addEventListener('click', onSendMessage);
-    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') onSendMessage(); });
-    
-    // Extra: enter op login velden
-    loginPassword.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLoginOrRegister(); });
-    loginEmail.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLoginOrRegister(); });
-    
-    // init: als er geen user is, toon login, anders wordt onAuthStateChanged afgehandeld.
+    };
 </script>
 </body>
 </html>
