@@ -1,1 +1,723 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeerChat - Directe Chat met Gebruikers</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Licht thema (standaard) */
+        :root {
+            --bg-gradient-start: #6e8efb;
+            --bg-gradient-end: #a777e3;
+            --container-bg: rgba(255,255,255,0.95);
+            --chat-bg: #f5f7ff;
+            --user-msg-start: #4a6cf7;
+            --user-msg-end: #7a52d4;
+            --other-msg-bg: white;
+            --other-msg-border: #ddd;
+            --text-color: #333;
+            --input-bg: white;
+            --input-border: #ddd;
+            --sidebar-bg: #f0f5ff;
+            --online-badge: #4cd964;
+            --offline-badge: #ff3b30;
+        }
+        
+        /* Donker thema */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-gradient-start: #1a1a2e;
+                --bg-gradient-end: #16213e;
+                --container-bg: rgba(30,30,46,0.95);
+                --chat-bg: #1e1e2e;
+                --user-msg-start: #4a6cf7;
+                --user-msg-end: #7a52d4;
+                --other-msg-bg: #2d2d3f;
+                --other-msg-border: #404055;
+                --text-color: #e0e0e0;
+                --input-bg: #2d2d3f;
+                --input-border: #404055;
+                --sidebar-bg: #252538;
+                --online-badge: #4cd964;
+                --offline-badge: #ff3b30;
+            }
+        }
+        
+        body { 
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end)); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 0; 
+            margin: 0; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 1400px; 
+            height: 100vh;
+            max-height: 100vh;
+            background: var(--container-bg); 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header { 
+            background: linear-gradient(90deg, #4a6cf7, #7a52d4); 
+            color: white; 
+            padding: 15px 20px;
+            text-align: center; 
+            position: relative; 
+        }
+        
+        .header-buttons {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .disclaimer-btn {
+            background: rgba(0,0,0,0.4);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .disclaimer-btn:hover {
+            background: rgba(0,0,0,0.6);
+        }
+        
+        .online-status { 
+            position: absolute; 
+            top: 10px; 
+            right: 20px; 
+            background: rgba(0,0,0,0.4); 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.75rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+        }
+        
+        .status-dot { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: var(--online-badge); 
+            animation: pulse 1.5s infinite; 
+        }
+        
+        @keyframes pulse { 
+            0% { opacity: 0.4; transform: scale(0.8); } 
+            100% { opacity: 1; transform: scale(1.2); } 
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--input-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .user-info {
+            padding: 15px;
+            border-bottom: 1px solid var(--input-border);
+        }
+        
+        .user-id {
+            font-size: 0.8rem;
+            word-break: break-all;
+            background: var(--input-bg);
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+            color: var(--text-color);
+        }
+        
+        .copy-btn {
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        .online-users {
+            flex: 1;
+            padding: 15px;
+        }
+        
+        .online-users h3 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        
+        .user-list {
+            list-style: none;
+        }
+        
+        .user-list li {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: var(--input-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+        }
+        
+        .user-list li:hover {
+            background: var(--user-msg-start);
+            color: white;
+        }
+        
+        .user-list li.active {
+            background: var(--user-msg-start);
+            color: white;
+        }
+        
+        .connect-input {
+            padding: 15px;
+            border-top: 1px solid var(--input-border);
+        }
+        
+        .connect-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+        
+        .connect-input button {
+            width: 100%;
+            padding: 8px;
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--input-border);
+            color: var(--text-color);
+        }
+        
+        .chat-header h3 {
+            font-size: 1rem;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: var(--chat-bg);
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            position: relative;
+            color: var(--text-color);
+        }
+        
+        .message-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--user-msg-start), var(--user-msg-end));
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message-other {
+            align-self: flex-start;
+            background: var(--other-msg-bg);
+            border: 1px solid var(--other-msg-border);
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-info {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+        
+        .input-container { 
+            display: flex; 
+            padding: 15px; 
+            background: var(--input-bg); 
+            border-top: 1px solid var(--input-border); 
+        }
+        
+        #message-input { 
+            flex: 1; 
+            padding: 12px 15px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 25px; 
+            outline: none; 
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        #send-btn { 
+            background: linear-gradient(135deg, #4a6cf7, #7a52d4); 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 45px; 
+            height: 45px; 
+            margin-left: 10px; 
+            cursor: pointer; 
+        }
+        
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--other-msg-bg);
+            padding: 8px 15px;
+            border-radius: 18px;
+            font-style: italic;
+            font-size: 0.85rem;
+            color: var(--text-color);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 250px;
+            }
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-buttons">
+            <button class="disclaimer-btn" id="disclaimerBtn">⚠️ Disclaimer</button>
+        </div>
+        <div class="online-status">
+            <div class="status-dot"></div>
+            <span id="connectionLabel">Verbonden</span>
+        </div>
+        <h1>PeerChat</h1>
+        <p>Directe chat met andere gebruikers</p>
+    </div>
+    
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="user-info">
+                <strong>Jouw ID:</strong>
+                <div class="user-id" id="myUserId">Laden...</div>
+                <button class="copy-btn" onclick="copyUserId()">📋 Kopieer ID</button>
+            </div>
+            
+            <div class="online-users">
+                <h3>📡 Actieve gebruikers</h3>
+                <ul class="user-list" id="userList">
+                    <li>Zoeken naar gebruikers...</li>
+                </ul>
+            </div>
+            
+            <div class="connect-input">
+                <input type="text" id="peerIdInput" placeholder="Voer gebruikers-ID in">
+                <button onclick="connectToUser()">🔗 Verbinden</button>
+            </div>
+        </div>
+        
+        <div class="chat-area">
+            <div class="chat-header">
+                <h3 id="chatWithLabel">Niet verbonden</h3>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message message-other">
+                    <div class="message-info">🤖 Systeem</div>
+                    Verbind met een gebruiker om te chatten!
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" id="message-input" placeholder="Typ je bericht..." disabled>
+                <button id="send-btn" disabled>➤</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+    let peer = null;
+    let currentConnection = null;
+    let currentPeerId = null;
+    let myId = null;
+    let typingTimeout = null;
+    let isTyping = false;
+    
+    // Lijst met actieve verbindingen (voor broadcast)
+    let activeConnections = [];
+    
+    // DOM elementen
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const userList = document.getElementById('userList');
+    const myUserIdSpan = document.getElementById('myUserId');
+    const chatWithLabel = document.getElementById('chatWithLabel');
+    
+    // ========== PEER.JS INITIALISATIE ==========
+    function initPeer() {
+        peer = new Peer();
+        
+        peer.on('open', (id) => {
+            myId = id;
+            myUserIdSpan.textContent = id;
+            addSystemMessage(`✅ Je bent online! Jouw ID: ${id.substring(0, 8)}...`);
+            startDiscovery();
+        });
+        
+        peer.on('connection', (conn) => {
+            addSystemMessage(`📞 Nieuwe verbinding van: ${conn.peer.substring(0, 8)}...`);
+            setupConnection(conn);
+        });
+        
+        peer.on('error', (err) => {
+            console.error('Peer error:', err);
+            addSystemMessage(`❌ Fout: ${err.type}`);
+        });
+        
+        peer.on('disconnected', () => {
+            addSystemMessage(`⚠️ Verbinding verbroken, opnieuw verbinden...`);
+            setTimeout(() => {
+                if (peer && peer.disconnected) {
+                    peer.reconnect();
+                }
+            }, 3000);
+        });
+    }
+    
+    // ========== DISCOVERY SERVICE (via localStorage broadcast) ==========
+    function startDiscovery() {
+        // Register bij localStorage
+        const discoveryKey = 'peerchat_users';
+        
+        function updateUserList() {
+            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
+            const now = Date.now();
+            const activeUsers = [];
+            
+            for (const [id, data] of Object.entries(users)) {
+                if (now - data.lastSeen < 30000 && id !== myId) {
+                    activeUsers.push({ id, name: data.name || id.substring(0, 8) });
+                }
+            }
+            
+            // Update UI
+            if (activeUsers.length === 0) {
+                userList.innerHTML = '<li>👤 Geen andere actieve gebruikers</li>';
+            } else {
+                userList.innerHTML = activeUsers.map(user => `
+                    <li onclick="connectToSpecificUser('${user.id}')">
+                        <span>👤 ${user.name}</span>
+                        <span style="font-size:0.7rem;">online</span>
+                    </li>
+                `).join('');
+            }
+        }
+        
+        // Registreer deze gebruiker
+        function registerUser() {
+            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
+            users[myId] = {
+                lastSeen: Date.now(),
+                name: myId.substring(0, 8)
+            };
+            localStorage.setItem(discoveryKey, JSON.stringify(users));
+            updateUserList();
+        }
+        
+        // Cleanup oude gebruikers
+        function cleanupUsers() {
+            const users = JSON.parse(localStorage.getItem(discoveryKey) || '{}');
+            const now = Date.now();
+            let changed = false;
+            
+            for (const [id, data] of Object.entries(users)) {
+                if (now - data.lastSeen > 30000) {
+                    delete users[id];
+                    changed = true;
+                }
+            }
+            
+            if (changed) {
+                localStorage.setItem(discoveryKey, JSON.stringify(users));
+            }
+            updateUserList();
+        }
+        
+        // Start registratie interval
+        registerUser();
+        setInterval(registerUser, 10000);
+        setInterval(cleanupUsers, 15000);
+        
+        // Luister naar localStorage changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === discoveryKey) {
+                updateUserList();
+            }
+        });
+        
+        updateUserList();
+    }
+    
+    // ========== VERBINDING SETUP ==========
+    function setupConnection(conn) {
+        conn.on('open', () => {
+            if (currentConnection && currentConnection !== conn) {
+                currentConnection.close();
+            }
+            currentConnection = conn;
+            currentPeerId = conn.peer;
+            chatWithLabel.textContent = `Chatten met: ${conn.peer.substring(0, 8)}...`;
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            addSystemMessage(`🔗 Verbonden met ${conn.peer.substring(0, 8)}...`);
+        });
+        
+        conn.on('data', (data) => {
+            handleIncomingMessage(data, conn.peer);
+        });
+        
+        conn.on('close', () => {
+            if (currentConnection === conn) {
+                addSystemMessage(`🔌 Verbinding verbroken met ${conn.peer.substring(0, 8)}...`);
+                currentConnection = null;
+                currentPeerId = null;
+                chatWithLabel.textContent = 'Niet verbonden';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            }
+        });
+        
+        conn.on('error', (err) => {
+            console.error('Connection error:', err);
+            addSystemMessage(`⚠️ Fout met verbinding: ${err.message}`);
+        });
+    }
+    
+    // ========== BERICHTEN AFHANDELEN ==========
+    function handleIncomingMessage(data, fromPeerId) {
+        if (data.type === 'message') {
+            addMessage(data.text, false, fromPeerId);
+        } else if (data.type === 'typing') {
+            showTypingIndicator();
+        }
+    }
+    
+    function sendMessage(text) {
+        if (!currentConnection || currentConnection.close) {
+            addSystemMessage('❌ Geen actieve verbinding!');
+            return;
+        }
+        
+        currentConnection.send({
+            type: 'message',
+            text: text
+        });
+        
+        addMessage(text, true, null);
+    }
+    
+    function sendTyping() {
+        if (!currentConnection || currentConnection.close) return;
+        
+        if (!isTyping) {
+            isTyping = true;
+            currentConnection.send({
+                type: 'typing'
+            });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTyping = false;
+            }, 2000);
+        }
+    }
+    
+    // ========== UI FUNCTIES ==========
+    function addMessage(text, isUser, fromPeerId = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'message-user' : 'message-other'}`;
+        
+        const infoSpan = document.createElement('div');
+        infoSpan.className = 'message-info';
+        infoSpan.textContent = isUser ? 'Jij' : `${(fromPeerId || 'Onbekend').substring(0, 8)}...`;
+        
+        const textSpan = document.createElement('div');
+        textSpan.textContent = text;
+        
+        messageDiv.appendChild(infoSpan);
+        messageDiv.appendChild(textSpan);
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function addSystemMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message message-other';
+        messageDiv.style.opacity = '0.7';
+        messageDiv.style.fontStyle = 'italic';
+        
+        const infoSpan = document.createElement('div');
+        infoSpan.className = 'message-info';
+        infoSpan.textContent = '🤖 Systeem';
+        
+        const textSpan = document.createElement('div');
+        textSpan.textContent = text;
+        
+        messageDiv.appendChild(infoSpan);
+        messageDiv.appendChild(textSpan);
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    let typingIndicatorDiv = null;
+    
+    function showTypingIndicator() {
+        if (typingIndicatorDiv) {
+            typingIndicatorDiv.remove();
+        }
+        
+        typingIndicatorDiv = document.createElement('div');
+        typingIndicatorDiv.className = 'typing-indicator';
+        typingIndicatorDiv.textContent = '👤 Gebruiker typt...';
+        chatMessages.appendChild(typingIndicatorDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        setTimeout(() => {
+            if (typingIndicatorDiv) {
+                typingIndicatorDiv.remove();
+                typingIndicatorDiv = null;
+            }
+        }, 2000);
+    }
+    
+    // ========== VERBINDINGSFUNCTIES ==========
+    function connectToSpecificUser(peerId) {
+        if (currentConnection && !currentConnection.close) {
+            currentConnection.close();
+        }
+        
+        addSystemMessage(`📞 Verbinden met ${peerId.substring(0, 8)}...`);
+        const conn = peer.connect(peerId);
+        setupConnection(conn);
+    }
+    
+    function connectToUser() {
+        const peerId = document.getElementById('peerIdInput').value.trim();
+        if (!peerId) {
+            addSystemMessage('❌ Voer een geldig gebruikers-ID in');
+            return;
+        }
+        
+        connectToSpecificUser(peerId);
+        document.getElementById('peerIdInput').value = '';
+    }
+    
+    function copyUserId() {
+        if (myId) {
+            navigator.clipboard.writeText(myId);
+            addSystemMessage('✅ Gebruikers-ID gekopieerd!');
+        }
+    }
+    
+    // ========== DISCLAIMER ==========
+    function showDisclaimer() {
+        window.open('disclaimer.txt', '_blank');
+    }
+    
+    // ========== TYPING DETECTIE ==========
+    function onMessageTyping() {
+        if (currentConnection && !currentConnection.close) {
+            sendTyping();
+        }
+    }
+    
+    // ========== INITIALISATIE ==========
+    function init() {
+        initPeer();
+        
+        messageInput.addEventListener('input', onMessageTyping);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && messageInput.value.trim()) {
+                sendMessage(messageInput.value.trim());
+                messageInput.value = '';
+            }
+        });
+        
+        sendBtn.addEventListener('click', () => {
+            if (messageInput.value.trim()) {
+                sendMessage(messageInput.value.trim());
+                messageInput.value = '';
+            }
+        });
+        
+        document.getElementById('disclaimerBtn').addEventListener('click', showDisclaimer);
+    }
+    
+    // Start alles
+    init();
+</script>
+</body>
+</html>
