@@ -51,7 +51,7 @@
     <div class="header">
         <div class="online-status"><div class="status-dot"></div><span id="connectionLabel">Verbinden...</span></div>
         <div class="bot-icon">🤖</div>
-        <h1>SmartBot 🌍</h1>
+        <h1>SmartBot</h1>
         <p>De chatbot die leert van de gebruikers</p>
     </div>
     <div class="chat-container" id="chat-container"></div>
@@ -65,10 +65,7 @@
         <div class="stat-item"><div class="stat-value" id="category-count">0</div><div>Categorieën</div></div>
         <div class="stat-item"><div class="stat-value" id="active-users">?</div><div>Actieve gebruikers</div></div>
     </div>
-    <div class="memory-panel">
-        <h3>📚 Wereldwijd geleerde woorden </h3>
-        <div id="memory-list"><em>Laden...</em></div>
-    </div>
+    
     <div class="category-colors">
         <div class="color-item"><div class="color-box begroeting"></div><span>Begroeting</span></div>
         <div class="color-item"><div class="color-box boos"></div><span>Boos</span></div>
@@ -134,7 +131,7 @@
     // ========== BASIS CATEGORISATIE (met trefwoorden) ==========
     const categoryKeywords = {
         begroeting: ["hallo","hoi","hey","dag","goedemorgen","goedenmiddag","goedenavond","goedendag"],
-        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","kankerlijer","tering"],
+        boos: ["dommerd","stommerd","idioot","sukkel","lul","klootzak","kut","tering"],
         compliment: ["mooi","leuk","geweldig","fantastisch","super","knap","slim","grappig","topper"],
         tip: ["tip","advies","suggestie","idee","aanrader","probeer","als je"],
         grap: ["grap","grappig","lachen","mop","humor","lach","haha"],
